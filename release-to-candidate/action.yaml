@@ -1,0 +1,97 @@
+name: Release to Candidate
+description: Builds a snap using `snapcraft remote-build` and releases it to candidate
+author: Snapcrafters
+branding:
+  icon: tag
+  color: orange
+
+inputs:
+  architecture:
+    description: "The architecture to build the snap for"
+    default: amd64
+    required: true
+  channel:
+    description: "The channel to publish the snap to"
+    default: "candidate"
+    required: false
+  launchpad-token:
+    description: "A token with permissions to create remote builds on Launchpad"
+    required: true
+  store-token:
+    description: "A token with permissions to upload to the specified channel"
+    required: true
+
+outputs:
+  revision:
+    description: "The revision of the uploaded snap"
+    value: ${{ steps.publish.outputs.revision }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+
+    - name: Setup snapcraft
+      shell: bash
+      run: |
+        sudo snap install snapcraft --classic
+
+        # Setup Launchpad credentials
+        mkdir -p ~/.local/share/snapcraft/provider/launchpad
+        echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
+        git config --global user.email "github-actions@github.com"
+        git config --global user.name "Github Actions"
+
+        # Install moreutils so we have access to sponge
+        sudo apt-get update; sudo apt-get install -y moreutils
+
+    - name: Build the snap (${{ inputs.architecture }})
+      id: build
+      shell: bash
+      env:
+        name: ${{ github.event.repository.name }}
+        arch: ${{ inputs.architecture }}
+      run : |
+        # Remove the architecture definition from the snapcraft.yaml due to:
+        # https://bugs.launchpad.net/snapcraft/+bug/1885150
+        cat snap/snapcraft.yaml | yq 'del(.architectures)' | sponge snap/snapcraft.yaml
+
+        snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"
+
+        version="$(cat snap/snapcraft.yaml | yq -r '.version')"
+        echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        echo "classic=false" >> "$GITHUB_OUTPUT"
+
+        if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
+          echo "classic=true" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Write the manifest file which is used by later steps
+        echo "name: ${name}" >> "manifest-${arch}.yaml"
+        echo "architecture: ${arch}" >> "manifest-${arch}.yaml"
+
+    - name: Review the built snap
+      uses: diddlesnaps/snapcraft-review-action@v1
+      with:
+        snap: ${{ steps.build.outputs.snap }}
+        isClassic: ${{ steps.build.outputs.classic }}
+
+    - name: Release the built snap to latest/${{ inputs.channel }}
+      id: publish
+      shell: bash
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
+        SNAP_FILE: ${{ steps.build.outputs.snap }}
+      run: |
+        snapcraft_out="$(snapcraft push "$SNAP_FILE" --release="${{ inputs.channel }}")"
+        revision="$(echo "$snapcraft_out" | grep -Po "Revision \K[^ ]+")"
+        echo "revision=${revision}" >> "$GITHUB_OUTPUT"
+        echo "revision: ${revision}" >> "manifest-${{ inputs.architecture }}.yaml"
+
+    # Upload the manifest file as an artifact for retrieval during future actions
+    - name: Upload revision manifest
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        name: "manifests"
+        path: "manifest-${{ inputs.architecture }}.yaml"

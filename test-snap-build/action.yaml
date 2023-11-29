@@ -1,0 +1,22 @@
+name: Test Snap Build
+description: Build the snap locally using Snapcraft and review the output.
+author: Snapcrafters
+branding:
+  icon: zap
+  color: orange
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+
+    - name: Build snap
+      uses: snapcore/action-build@v1
+      id: build
+
+    - name: Review snap
+      uses: diddlesnaps/snapcraft-review-action@v1
+      with:
+        snap: ${{ steps.build.outputs.snap }}
+        isClassic: 'false'

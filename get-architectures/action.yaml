@@ -1,0 +1,39 @@
+name: Get Architectures
+description: Get the architectures supported by a given snap
+author: Snapcrafters
+branding:
+  icon: code
+  color: orange
+
+outputs:
+  architectures:
+    description: "A space-separated list of architectures supported by the snap"
+    value: ${{ steps.architectures.outputs.architectures }}
+  architectures-list:
+    description: "A JSON list of architectures supported by the snap"
+    value: ${{ steps.architectures.outputs.architectures_list }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+
+    - name: Compute architectures
+      id: architectures
+      shell: bash
+      run: |
+        # Get the list as a json array. E.g. ["amd64", "arm64"]
+        architectures_list="$(cat snap/snapcraft.yaml | yq -r -I=0 -o=json '[.architectures[]]')"
+        
+        # Get the list as a space-separated string. E.g. "amd64" "arm64"
+        architectures="$(cat snap/snapcraft.yaml | yq -r -I=0 -o=csv '[.architectures[]]' | tr ',' ' ')"
+
+        # Handle the case where architectures is a list of objects
+        if echo "$architectures" | grep -q "build-on"; then
+            architectures_list="$(cat snap/snapcraft.yaml | yq -r -I=0 -o=json '[.architectures[]."build-on"]')"
+            architectures="$(cat snap/snapcraft.yaml | yq -r -I=0 -o=csv '[.architectures[]."build-on"]' | tr ',' ' ')"
+        fi
+
+        echo "architectures_list=$architectures_list" >> "$GITHUB_OUTPUT"
+        echo "architectures=$architectures" >> "$GITHUB_OUTPUT"

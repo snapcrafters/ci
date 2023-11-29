@@ -1,0 +1,130 @@
+name: Get screenshots
+description: Install a snap in a VM and get screenshots of it running
+author: Snapcrafters
+branding:
+  icon: camera
+  color: orange
+
+inputs:
+  issue-number:
+    description: "The issue number to post the screenshots into"
+    required: true
+  ci-repo:
+    description: "The repo to fetch tools/templates from. Only for debugging."
+    default: "snapcrafters/ci"
+    required: false
+  channel:
+    description: "The channel to publish the snap to"
+    default: "candidate"
+    required: false
+  github-token:
+    description: "A token with permissions to comment on issues"
+    required: true
+  screenshots-repo:
+    description: "The repository where screenshots should be uploaded."
+    default: "snapcrafters/ci-screenshots"
+    required: false
+  screenshots-token:
+    description: "A token with permissions to commit files to the screenshots repo"
+    required: true
+
+outputs:
+  screen:
+    description: "URL to a screenshot of the full screen of the VM"
+    value: ${{ steps.screenshots.outputs.screen }}
+  window:
+    description: "URL to a screenshot of the full screen of the VM"
+    value: ${{ steps.screenshots.outputs.window }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Setup ghvmctl
+      uses: jnsgruk/ghvmctl/setup-ghvmctl@candidate
+
+    - name: Download manifest files (if available)
+      continue-on-error: true
+      uses: actions/download-artifact@v3
+      with:
+        name: manifests
+
+    - name: Prepare VM
+      shell: bash
+      env:
+        SNAP_NAME: ${{ github.event.repository.name }}
+      run: |
+        ghvmctl prepare
+
+        # If we got a manifest file then parse the revision from it
+        if ls manifest-amd64.yaml &>/dev/null; then
+          rev="$(cat manifest-amd64.yaml | yq -r '.revision')"
+          echo "Installing snap revision '${rev}' from build manifest"
+          ghvmctl install-snap "${SNAP_NAME}" --revision "${rev}"
+        else
+          echo "Installing snap from 'latest/${{ inputs.channel}}'"
+          ghvmctl install-snap "${SNAP_NAME}" --channel "latest/${{ inputs.channel }}"
+        fi
+
+        ghvmctl run-snap "${SNAP_NAME}"
+        sleep 60
+
+    - name: Gather screenshots
+      shell: bash
+      run: |
+        ghvmctl screenshot-full
+        ghvmctl screenshot-window
+
+    - name: Output application logs
+      shell: bash
+      env:
+        SNAP_NAME: ${{ github.event.repository.name }}
+      run: |
+        ghvmctl exec "cat /home/ubuntu/${SNAP_NAME}.log"
+
+    - name: Checkout screenshots repo
+      uses: actions/checkout@v4
+      with: 
+        repository: ${{ inputs.screenshots-repo }}
+        path: ci-screenshots
+        token: ${{ inputs.screenshots-token }}
+
+    - name: Upload screenshots to screenshots repo
+      shell: bash
+      id: screenshots
+      env:
+        SNAP_NAME: ${{ github.event.repository.name }}
+      run: |
+        file_prefix="$(date +%Y%m%d)-${SNAP_NAME}-${{ inputs.issue-number }}"
+
+        pushd ci-screenshots
+        mv "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
+        mv "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
+
+        git config --global user.email "merlijn.sebrechts+snapcrafters-bot@gmail.com"
+        git config --global user.name "Snapcrafters Bot"
+
+        git add -A .
+        git commit -m "data: screenshots for snapcrafters/${SNAP_NAME}#${{ inputs.issue-number }}"
+        git push origin main
+
+        echo "screen=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-screen.png" >> "$GITHUB_OUTPUT"
+        echo "window=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-window.png" >> "$GITHUB_OUTPUT"
+
+    - name: Comment on call for testing issue with screenshots
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: ${{ inputs.issue-number }},
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `The following screenshots were taken during automated testing:
+
+            ![window](${{ steps.screenshots.outputs.window }})
+
+            ![screen](${{ steps.screenshots.outputs.screen }})
+            `
+          })

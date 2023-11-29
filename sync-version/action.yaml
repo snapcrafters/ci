@@ -1,0 +1,46 @@
+name: Setup ghvmctl
+description: Configure a runner for access to the KVM socket and install ghvmctl
+author: Snapcrafters
+branding:
+  icon: refresh-cw
+  color: orange
+
+inputs:
+  update-script:
+    description: "Bash script that fetches the latest version and updates the source tree as required."
+    required: true
+  token:
+    required: true
+    description: A token with write privileges to the repository.
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
+
+    - name: Run update script
+      shell: bash
+      run: |
+        ${{ inputs.update-script }}
+
+    - name: Check for modified files
+      shell: bash
+      id: git-check
+      run: |
+        MODIFIED=$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
+        echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
+
+    - name: Commit changes
+      if: steps.git-check.outputs.modified == 'true'
+      shell: bash
+      env:
+        SNAP_NAME: ${{ github.event.repository.name }}
+      run: |
+        version="$(cat snap/snapcraft.yaml | yq -r '.version')"
+        git config --global user.name 'Snapcrafters Bot'
+        git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
+        git commit -am "chore: bump ${SNAP_NAME} to version $version"
+        git push
