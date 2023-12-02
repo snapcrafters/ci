@@ -43,7 +43,7 @@ runs:
       uses: actions/checkout@v4
 
     - name: Setup ghvmctl
-      uses: jnsgruk/ghvmctl/setup-ghvmctl@candidate
+      uses: snapcrafters/ci/setup-ghvmctl@main
 
     - name: Download manifest files (if available)
       continue-on-error: true
