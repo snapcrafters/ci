@@ -27,8 +27,6 @@ runs:
       run : |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
-        echo "slots=''" >> "$GITHUB_OUTPUT"
-        echo "plugs=''" >> "$GITHUB_OUTPUT"
 
         # Check for classic confinement and update the output if the snap is classic
         if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
