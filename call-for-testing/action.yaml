@@ -1,0 +1,113 @@
+name: Create call for testing
+description: Create a call for testing for a given snap repository
+author: Snapcrafters
+branding:
+  icon: message-circle
+  color: orange
+
+inputs:
+  architectures:
+    description: "The architectures to build the snap for"
+    required: true
+  ci-repo:
+    description: "The repo to fetch tools/templates from. Only for debugging"
+    default: "snapcrafters/ci"
+    required: false
+  channel:
+    description: "The channel to publish the snap to"
+    default: "candidate"
+    required: false
+  github-token:
+    description: "A token with permissions to create issues on the repository"
+    required: true
+  store-token:
+    description: "A token with permissions to upload to the specified channel"
+    required: false
+
+outputs:
+  issue-number:
+    description: "The issue number containing the call for testing"
+    value: ${{ steps.issue.outputs.number }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+
+    - name: Download manifest files
+      continue-on-error: true
+      uses: actions/download-artifact@v3
+      with:
+        name: "manifests"
+    
+    - name: Setup snapcraft
+      shell: bash
+      run: |
+        sudo snap install snapcraft --classic
+
+    - name: Write the arch/rev table
+      shell: bash
+      id: build
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
+        SNAP_NAME: ${{ github.event.repository.name }}
+      run: |
+        revisions=()
+
+        # Build the initial structure for the HTML table including the header row.
+        table="<table><thead><tr><th>CPU Architecture</th><th>Revision</th></tr></thead><tbody>"
+
+        # If we were able to fetch build manifests from previous step, use those
+        if ls -l manifest-*.yaml &>/dev/null; then
+          echo "Found build manifests - populating template with revisions from the manifests"
+          
+          # Iterate over the manifest files and write the table rows for each architecture
+          for file in $(ls manifest-*.yaml); do
+            # Parse the arch and the revision
+            arch="$(cat "${file}" | yq -r '.architecture')"
+            rev="$(cat "${file}" | yq -r '.revision')"
+            # Write the table row and add the revision to the list we're tracking
+            table="${table}<tr><td>${arch}</td><td>${rev}</td></tr>"
+            revisions+=("$rev")
+          done
+        else
+          echo "No build manifests found - populating template with information from the store"
+          
+          # Otherwise, get the latest revision for each architecture in the release channel
+          for arch in ${{ inputs.architectures }}; do
+            rev="$(snapcraft list-revisions "${SNAP_NAME}" --arch "$arch" | grep "latest/${{ inputs.channel }}*" | head -n1 | cut -d' ' -f1)"
+            revisions+=("$rev")
+            # Add a row to the HTML table
+            table="${table}<tr><td>${arch}</td><td>${rev}</td></tr>"
+          done
+        fi
+
+        # Add the closing tags for the table
+        table="${table}</tbody></table>"
+
+        # Get a comma separated list of revisions
+        printf -v joined '%s,' "${revisions[@]}"
+
+        version="$(cat snap/snapcraft.yaml | yq -r '.version')"
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
+        echo "table=${table}" >> "$GITHUB_OUTPUT"
+
+    - name: Fetch the call for testing template
+      shell: bash
+      run: |
+        wget -qO template.md "https://raw.githubusercontent.com/${{ inputs.ci-repo }}/main/call-for-testing/template.md"
+    
+    - name: Create call for testing issue
+      uses: JasonEtco/create-an-issue@v2
+      id: issue
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        snap_name: ${{ github.event.repository.name }}
+        channel: ${{ inputs.channel }}
+        revisions: ${{ steps.build.outputs.revisions }}
+        table: ${{ steps.build.outputs.table }}
+        version: ${{ steps.build.outputs.version }}
+      with:
+        filename: ./template.md

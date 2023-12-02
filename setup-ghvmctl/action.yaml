@@ -1,0 +1,25 @@
+name: Setup ghvmctl
+description: Configure a runner for access to the KVM socket and install ghvmctl
+author: snapcrafters
+branding:
+  icon: refresh-cw
+  color: orange
+
+runs:
+  using: composite
+  steps:
+    - name: Enable KVM on the Github Actions runner
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Setup LXD
+      uses: canonical/setup-lxd@v0.1.1
+
+    - name: Setup ghvmctl
+      shell: bash
+      run: |
+        sudo snap install ghvmctl
+        sudo snap connect ghvmctl:lxd lxd:lxd

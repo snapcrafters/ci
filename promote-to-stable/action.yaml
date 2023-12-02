@@ -1,0 +1,104 @@
+name: Promote to latest/stable
+description: Promotes a given set of revisions from candidate -> stable
+author: Snapcrafters
+branding:
+  icon: trending-up
+  color: orange
+
+inputs:
+  github-token:
+    description: "A token with permissions to write issues on the repository"
+    required: true
+  store-token:
+    description: "A token with permissions to upload to the specified channel"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Parse slash command
+      id: command
+      uses: xt0rted/slash-command-action@v2
+      with:
+        repo-token: ${{ inputs.github-token }}
+        command: promote
+        reaction: "true"
+        reaction-type: "eyes"
+        allow-edits: "false"
+        permission-level: write
+
+    - name: Install snapcraft
+      shell: bash
+      run: |
+        sudo snap install --classic snapcraft
+
+    - name: Promote snap to latest/stable
+      id: promote
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
+        SNAP_NAME: ${{ github.event.repository.name }}
+      shell: bash
+      run: |
+        echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
+        
+        arguments=(${{ steps.command.outputs.command-arguments }})
+        revision=${arguments[0]}
+        channel=${arguments[1]}
+        done=${arguments[2]}
+
+        re='^[0-9]+([,][0-9]+)*$'
+        if [[ ! "$revision" =~ $re ]]; then
+          echo "revision must be a number or a comma separated list of numbers, not '$revision'!"
+          exit 1
+        fi
+
+        if [[ "$channel" != "stable"  ]]; then
+          echo "I can only promote to stable, not '$channel'!"
+          exit 1
+        fi
+
+        if [[ -n "$done" && "$done" != "done"  ]]; then
+          echo "The third argument should be 'done' or empty"
+          exit 1
+        fi
+
+        # Iterate over each specified revision and release
+        revs=$(echo $revision | tr "," "\n")
+        released_revs=()
+
+        for r in $revs; do
+          snapcraft release $SNAP_NAME "$r" "$channel"
+          released_revs+=("$r")
+        done
+
+        # Get a comma separated list of released revisions
+        printf -v joined '%s,' "${released_revs[@]}"
+
+        echo "revisions=${joined%,}" >> $GITHUB_OUTPUT
+        echo "channel=$channel" >> $GITHUB_OUTPUT
+        echo "done=$done" >> $GITHUB_OUTPUT
+
+    - name: Comment on call for testing issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: 'The following revisions were released to the `${{ steps.promote.outputs.channel }}` channel: `${{ steps.promote.outputs.revisions }}`'
+          })
+
+    - name: Close call for testing issue
+      if: ${{ steps.promote.outputs.done }} == "done"
+      uses: actions/github-script@v7
+      with:
+        script: |
+          if ("${{ steps.promote.outputs.done }}" === "done") {
+            github.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed'
+            })
+          }
