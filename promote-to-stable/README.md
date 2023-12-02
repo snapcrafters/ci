@@ -12,6 +12,10 @@ jobs:
   promote:
     name: ⬆️ Promote to stable
     runs-on: ubuntu-latest
+    if: |
+      ( !github.event.issue.pull_request )
+      && contains(github.event.comment.body, '/promote ')
+      && contains(github.event.*.labels.*.name, 'testing')
     steps:
       - name: ⬆️ Promote to stable
         uses: snapcrafters/ci/promote-to-stable@main
