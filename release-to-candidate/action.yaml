@@ -61,15 +61,40 @@ runs:
 
         version="$(cat snap/snapcraft.yaml | yq -r '.version')"
         echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
-        echo "classic=false" >> "$GITHUB_OUTPUT"
-
-        if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
-          echo "classic=true" >> "$GITHUB_OUTPUT"
-        fi
 
         # Write the manifest file which is used by later steps
         echo "name: ${name}" >> "manifest-${arch}.yaml"
         echo "architecture: ${arch}" >> "manifest-${arch}.yaml"
+
+    - name: Parse snap review information
+      id: parse
+      shell: bash
+      run : |
+        # Populate defaults
+        echo "classic=false" >> "$GITHUB_OUTPUT"
+        echo "slots=''" >> "$GITHUB_OUTPUT"
+        echo "plugs=''" >> "$GITHUB_OUTPUT"
+
+        # Check for classic confinement and update the output if the snap is classic
+        if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
+          echo "classic=true" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Declare the common locations for plugs/slots declarations
+        plugs_files=("plug-declaration.json" ".github/plug-declaration.json")
+        slots_files=("slot-declaration.json" ".github/slot-declaration.json")
+        
+        for file in "${plugs_files[@]}"; do
+          if [[ -f "$file" ]]; then
+            echo "plugs=$file" >> "$GITHUB_OUTPUT"
+          fi
+        done
+
+        for file in "${slots_files[@]}"; do
+          if [[ -f "$file" ]]; then
+            echo "slots=$file" >> "$GITHUB_OUTPUT"
+          fi
+        done
 
     - name: Review the built snap
       uses: diddlesnaps/snapcraft-review-action@v1
