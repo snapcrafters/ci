@@ -62,7 +62,7 @@ jobs:
 
 | Key             | Description                                                                                                                                                                             | Required | Default           |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------- |
-| `architectures` | The architectures that the snap supports.                                                                                                                                               |    Y     | `amd64 arm64`     |
+| `architectures` | The architectures that the snap supports.                                                                                                                                               |    Y     |                   |
 | `ci-repo`       | The repo to fetch tools/templates from. Only for debugging.                                                                                                                             |    N     | `snapcrafters/ci` |
 | `channel`       | The channel to create the call for testing for.                                                                                                                                         |    N     | `candidate`       |
 | `github-token`  | A token with permissions to create issues on the repository.                                                                                                                            |    Y     |                   |

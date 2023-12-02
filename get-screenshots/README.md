@@ -34,11 +34,11 @@ jobs:
 | `channel`           | The channel to create the call for testing for.                                                                    |    N     | `candidate`                   |
 | `github-token`      | A token with permissions to common on issues in the repository.                                                    |    Y     |                               |
 | `screenshots-repo`  | The repository where screenshots should be uploaded.                                                               |    N     | `snapcrafters/ci-screenshots` |
-| `screesnhots-token` | A token with permissions to commit screenshots to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots) |    Y     |                               |
+| `screenshots-token` | A token with permissions to commit screenshots to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots) |    Y     |                               |
 
 ### Outputs
 
-| Key      | Description                                                   | Example |
-| -------- | ------------------------------------------------------------- | ------- |
-| `screen` | A URL pointing to a screenshot of the whole screen in the VM  | `12`    |
-| `window` | A URL pointing to a screenshot of the active window in the VM | `12`    |
+| Key      | Description                                                   |
+| -------- | ------------------------------------------------------------- |
+| `screen` | A URL pointing to a screenshot of the whole screen in the VM  |
+| `window` | A URL pointing to a screenshot of the active window in the VM |

@@ -28,7 +28,7 @@ None
 
 ### Outputs
 
-| Key                  | Description                                                    | Example             |
-| -------------------- | -------------------------------------------------------------- | ------------------- |
-| `architectures`      | A space-separated list of architectures supported by the snap. | `amd64 arm64`       |
-| `architectures-list` | A JSON list of architectures supported by the snap             | `["amd64" "arm64"]` |
+| Key                  | Description                                                    | Example              |
+| -------------------- | -------------------------------------------------------------- | -------------------- |
+| `architectures`      | A space-separated list of architectures supported by the snap. | `amd64 arm64`        |
+| `architectures-list` | A JSON list of architectures supported by the snap             | `["amd64", "arm64"]` |
