@@ -5,6 +5,12 @@ branding:
   icon: zap
   color: orange
 
+inputs:
+  install:
+    description: "Option to install the snap on the runner after build"
+    default: "false"
+    required: false
+
 runs:
   using: composite
   steps:
@@ -15,8 +21,46 @@ runs:
       uses: snapcore/action-build@v1
       id: build
 
-    - name: Review snap
+    - name: Parse snap review information
+      id: parse
+      shell: bash
+      run : |
+        # Populate defaults
+        echo "classic=false" >> "$GITHUB_OUTPUT"
+        echo "slots=''" >> "$GITHUB_OUTPUT"
+        echo "plugs=''" >> "$GITHUB_OUTPUT"
+
+        # Check for classic confinement and update the output if the snap is classic
+        if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
+          echo "classic=true" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Declare the common locations for plugs/slots declarations
+        plugs_files=("plug-declaration.json" ".github/plug-declaration.json")
+        slots_files=("slot-declaration.json" ".github/slot-declaration.json")
+        
+        for file in "${plugs_files[@]}"; do
+          if [[ -f "$file" ]]; then
+            echo "plugs=$file" >> "$GITHUB_OUTPUT"
+          fi
+        done
+
+        for file in "${slots_files[@]}"; do
+          if [[ -f "$file" ]]; then
+            echo "slots=$file" >> "$GITHUB_OUTPUT"
+          fi
+        done
+
+    - name: Review the built snap
       uses: diddlesnaps/snapcraft-review-action@v1
       with:
         snap: ${{ steps.build.outputs.snap }}
-        isClassic: 'false'
+        isClassic: ${{ steps.parse.outputs.classic }}
+        plugs: ${{ steps.parse.outputs.plugs }}
+        slots: ${{ steps.parse.outputs.slots }}
+
+    - name: Install the snap
+      if: ${{ inputs.install == 'true' }}
+      shell: bash
+      run: |
+        sudo snap install --classic --dangerous ${{ steps.build.outputs.snap }}
