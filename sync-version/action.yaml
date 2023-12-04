@@ -45,7 +45,7 @@ runs:
         done
         fi
         echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "prev_version=$(yq -r '.version' $yaml_path)" >> "$GITHUB_OUTPUT"
+        echo "prev_version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
     - name: Run update script
       shell: bash
