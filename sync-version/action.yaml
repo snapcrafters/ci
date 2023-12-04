@@ -69,7 +69,7 @@ runs:
         SNAP_NAME: ${{ github.event.repository.name }}
       run: |
         new_version="$(yq -r '.version' $yaml_path)"
-        if [[ "$prev_version" -eq "$new_version" ]]; then
+        if [[ ! "$prev_version" -eq "$new_version" ]]; then
             version=$new_version
         fi
         git config --global user.name 'Snapcrafters Bot'
