@@ -98,7 +98,9 @@ runs:
       uses: diddlesnaps/snapcraft-review-action@v1
       with:
         snap: ${{ steps.build.outputs.snap }}
-        isClassic: ${{ steps.build.outputs.classic }}
+        isClassic: ${{ steps.parse.outputs.classic }}
+        plugs: ${{ steps.parse.outputs.plugs }}
+        slots: ${{ steps.parse.outputs.slots }}
 
     - name: Release the built snap to latest/${{ inputs.channel }}
       id: publish
