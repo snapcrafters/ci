@@ -35,10 +35,10 @@ runs:
           yaml_path="${{ inputs.snapcraft-yaml-path }}"
         else
           snapcraft_yaml_paths=(
-          "snap/snapcraft.yaml"
-          "snapcraft.yaml"
-          "build-aux/snap/snapcraft.yaml"
-          ".snapcraft.yaml"
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            ".snapcraft.yaml"
           )
           
           for file in "${snapcraft_yaml_paths[@]}"; do
