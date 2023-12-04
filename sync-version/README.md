@@ -32,6 +32,7 @@ jobs:
 | --------------- | -------------------------------------------------------------------------------------------------- | :------: |
 | `token`         | A token with permissions to commit to the repository.                                              |    Y     |
 | `update-script` | A script that checks for version updates and updates `snapcraft.yaml` and other files if required. |    Y     |
+| `yaml-path`     | The path to the `snapcraft.yaml` file.                                                             |    N     | 
 
 ### Outputs
 
