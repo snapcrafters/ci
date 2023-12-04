@@ -31,6 +31,7 @@ jobs:
 | -------------- | ---------------------------------------------------------------------------------------- | :------: | :------ |
 | `github-token` | A token with permissions to write issues on the repository                               |    Y     |         |
 | `store-token`  | A token with permissions to upload and release to the `stable` channel in the Snap Store |    Y     |         |
+| `snap-name`    | The name of the snap to promote                                                          |    N     |         |
 
 ### Outputs
 
