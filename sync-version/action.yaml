@@ -1,5 +1,5 @@
 name: Sync Version
-description: Sync the version with latest upstream releases
+description: Sync versions of a snap's applications and parts with the latest upstream versions.
 author: Snapcrafters
 branding:
   icon: refresh-cw
