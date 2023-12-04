@@ -1,0 +1,31 @@
+name: Test on latest Snapcraft
+description: Install the latest upcoming version of snapcraft and check if the snap can be built on that
+author: Snapcrafters
+branding:
+  icon: camera
+  color: orange
+
+inputs:
+  snap-name:
+    description: Name of the snap to test
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Setup ghvmctl
+      uses: snapcrafters/ci/setup-ghvmctl@main
+
+    - name: Prepare VM
+      shell: bash
+      env:
+        SNAP_NAME: ${{ inputs.snap-name || github.event.repository.name }}
+      run: |
+        ghvmctl prepare
+        ghvmctl install-snap snapcraft --classic --channel=latest/candidate
+        ghvmctl run-snap snapcraft --verbosity debug
+        sleep 60
+
