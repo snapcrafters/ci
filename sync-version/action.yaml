@@ -1,5 +1,5 @@
-name: Setup ghvmctl
-description: Configure a runner for access to the KVM socket and install ghvmctl
+name: Sync Version
+description: Sync the version with latest upstream releases
 author: Snapcrafters
 branding:
   icon: refresh-cw
@@ -24,6 +24,29 @@ runs:
       with:
         token: ${{ inputs.token }}
 
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+          "snap/snapcraft.yaml"
+          "snapcraft.yaml"
+          "build-aux/snap/snapcraft.yaml"
+          ".snapcraft.yaml"
+          )
+          
+        for file in "${snapcraft_yaml_paths[@]}"; do
+            if [[ -f "$file" ]]; then
+                yaml_path="$file"
+            fi
+        done
+        fi
+        echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "prev_version=$(yq -r '.version' $yaml_path)" >> "$GITHUB_OUTPUT"
+
     - name: Run update script
       shell: bash
       run: |
@@ -39,27 +62,21 @@ runs:
     - name: Commit changes
       if: steps.git-check.outputs.modified == 'true'
       shell: bash
+      with:
+        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
+        prev_version: ${{ steps.yaml-path.outputs.prev_version }}
       env:
         SNAP_NAME: ${{ github.event.repository.name }}
       run: |
-        if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
-            yaml_path="${{ inputs.snapcraft-yaml-path }}"
-        else
-            snapcraft_yaml_paths=(
-              "snap/snapcraft.yaml"
-              "snapcraft.yaml"
-              "build-aux/snap/snapcraft.yaml"
-              ".snapcraft.yaml"
-              )
-              
-        for file in "${snapcraft_yaml_paths[@]}"; do
-            if [[ -f "$file" ]]; then
-                yaml_path="$file"
-            fi
-        done
+        new_version="$(yq -r '.version' $yaml_path)"
+        if [[ "$prev_version" -eq "$new_version" ]]; then
+            version=$new_version
         fi
-        version="$(cat $yaml_path | yq -r '.version')"
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
-        git commit -am "chore: bump ${SNAP_NAME} to version $version"
+        if [ $version ]; then
+            git commit -am "chore: bump ${SNAP_NAME} to version $version"
+        else
+            git commit -am "chore: bump ${SNAP_NAME} dependencies"
+        fi
         git push
