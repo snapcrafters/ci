@@ -24,13 +24,14 @@ jobs:
 
 ### Inputs
 
-| Key               | Description                                                                               | Required | Default     |
-| ----------------- | ----------------------------------------------------------------------------------------- | :------: | :---------- |
-| `architecture`    | The architecture for which to build the snap.                                             |    N     | `amd64`     |
-| `channel`         | The channel to release the snap to.                                                       |    N     | `candidate` |
-| `launchpad-token` | A token with permissions to create Launchpad remote builds.                               |    Y     |             |
-| `store-token`     | A token with permissions to upload and release to the specified channel in the Snap Store |    Y     |             |
-| `yaml_path`       | The path to the YAML file.                                                                |    N     |`Default Paths`|
+| Key               | Description                                                                               | Required | Default        |
+| ----------------- | ----------------------------------------------------------------------------------------- | :------: | :--------------|
+| `architecture`    | The architecture for which to build the snap.                                             |    N     | `amd64`        |
+| `channel`         | The channel to release the snap to.                                                       |    N     | `candidate`    |
+| `launchpad-token` | A token with permissions to create Launchpad remote builds.                               |    Y     |                |
+| `store-token`     | A token with permissions to upload and release to the specified channel in the Snap Store |    Y     |                |
+| `yaml-path`       | The path to the YAML file.                                                                |    N     |`Default Path`  |
+| `snap-name`       | The name of the snap.                                                                     |    N     |`Repo Name`     |
 
 ### Outputs
 
