@@ -47,6 +47,10 @@ runs:
               fi
           done
         fi
+        if [[ ! -n "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found" >2
+           exit 1
+        fi
         echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
         echo "prev_version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
@@ -77,7 +81,7 @@ runs:
         fi
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
-        if [ $version ]; then
+        if [[ -n "${version:-}" ]]; then
             git commit -am "chore: bump ${SNAP_NAME} to version $version"
         else
             git commit -am "chore: bump ${SNAP_NAME} dependencies"
