@@ -68,7 +68,7 @@ runs:
       env:
         SNAP_NAME: ${{ github.event.repository.name }}
       run: |
-        new_version="$(yq -r '.version' $yaml_path)"
+        new_version="$(yq -r '.version' "$yaml_path")"
         if [[ ! "$prev_version" == "$new_version" ]]; then
             version=$new_version
         fi
