@@ -92,7 +92,7 @@ runs:
         snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"
 
         version="$(yq -r '.version' "$yaml_path")"
-        if [[ ! -e ${name}_${version}_${arch}.snap ]]; then
+        if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
             cat "${name}_${arch}.txt"
             exit 1
