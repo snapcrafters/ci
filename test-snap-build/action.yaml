@@ -10,6 +10,9 @@ inputs:
     description: "Option to install the snap on the runner after build"
     default: "false"
     required: false
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml allowing to have multiple manifests in one repo."
+    required: false
 
 runs:
   using: composite
@@ -17,19 +20,45 @@ runs:
     - name: Checkout the source
       uses: actions/checkout@v4
 
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+          "snap/snapcraft.yaml"
+          "snapcraft.yaml"
+          "build-aux/snap/snapcraft.yaml"
+          ".snapcraft.yaml"
+          )
+          
+        for file in "${snapcraft_yaml_paths[@]}"; do
+            if [[ -f "$file" ]]; then
+                yaml_path="$file"
+            fi
+        done
+        fi
+        echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
+
     - name: Build snap
       uses: snapcore/action-build@v1
       id: build
+      with:
+        path: ${{ steps.yaml-path.outputs.yaml_path }} 
 
     - name: Parse snap review information
       id: parse
       shell: bash
+      with:
+        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
       run : |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
 
         # Check for classic confinement and update the output if the snap is classic
-        if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
+        if [[ "$(cat ${yaml_path} | yq -r '.confinement')" == "classic" ]]; then
           echo "classic=true" >> "$GITHUB_OUTPUT"
         fi
 

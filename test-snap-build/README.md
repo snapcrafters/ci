@@ -37,6 +37,8 @@ jobs:
 | Key       | Description                                                    | Required | Default |
 | --------- | -------------------------------------------------------------- | :------: | :------ |
 | `install` | If `true`, the built snap is install on the runner after build |    N     | `false` |
+| `snapcraft-yaml-path`| The path to the Snapcraft YAML file.                |    N     |         |
+
 
 ### Outputs
 
