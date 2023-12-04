@@ -31,7 +31,7 @@ jobs:
 | `launchpad-token` | A token with permissions to create Launchpad remote builds.                               |    Y     |                |
 | `store-token`     | A token with permissions to upload and release to the specified channel in the Snap Store |    Y     |                |
 | `yaml-path`       | The path to the YAML file.                                                                |    N     |`Default Path`  |
-| `snap-name`       | The name of the snap.                                                                     |    N     |`Repo Name`     |
+| `snap-name`       | The name of the snap.                                                                     |    N     |          |
 
 ### Outputs
 
