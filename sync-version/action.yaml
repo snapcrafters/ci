@@ -1,5 +1,5 @@
-name: Setup ghvmctl
-description: Configure a runner for access to the KVM socket and install ghvmctl
+name: Sync Version
+description: Sync versions of a snap's applications and parts with the latest upstream versions.
 author: Snapcrafters
 branding:
   icon: refresh-cw
@@ -12,6 +12,9 @@ inputs:
   token:
     required: true
     description: A token with write privileges to the repository.
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+    required: false
 
 runs:
   using: composite
@@ -20,6 +23,34 @@ runs:
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.token }}
+
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            ".snapcraft.yaml"
+          )
+          
+          for file in "${snapcraft_yaml_paths[@]}"; do
+              if [[ -f "$file" ]]; then
+                  yaml_path="$file"
+              fi
+          done
+        fi
+        if [[ ! -n "${yaml-path}" ]]; then
+           echo "No snapcraft.yaml found" >2
+           exit 1
+        fi
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "prev-version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
     - name: Run update script
       shell: bash
@@ -37,10 +68,19 @@ runs:
       if: steps.git-check.outputs.modified == 'true'
       shell: bash
       env:
-        SNAP_NAME: ${{ github.event.repository.name }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
+        prev_version: ${{ steps.yaml-path.outputs.prev-version }}
+        SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
-        version="$(cat snap/snapcraft.yaml | yq -r '.version')"
+        new_version="$(yq -r '.version' "$yaml-path")"
+        if [[ ! "$prev_version" == "$new_version" ]]; then
+            version=$new_version
+        fi
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
-        git commit -am "chore: bump ${SNAP_NAME} to version $version"
+        if [[ -n "${version:-}" ]]; then
+            git commit -am "chore: bump ${SNAP_NAME} to version $version"
+        else
+            git commit -am "chore: bump ${SNAP_NAME} dependencies"
+        fi
         git push
