@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+
+      - name: Run linters
+        run: |
+          make lint
+
+      - name: Run formatters
+        run: |
+          make format
+
+      - name: Check for modifications to generated files
+        run: |
+          if [[ -n "$(git status -s)" ]]; then
+            echo "Please run 'make format' then commit/push changes"
+            echo
+            git diff
+            exit 1
+          fi
