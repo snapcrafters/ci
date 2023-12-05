@@ -44,7 +44,7 @@ runs:
            echo "No snapcraft.yaml found" >2
            exit 1
         fi
-        echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
 
     - name: Build snap
       uses: snapcore/action-build@v1
@@ -55,8 +55,8 @@ runs:
     - name: Parse snap review information
       id: parse
       shell: bash
-      with:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
+      env:
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
       run : |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
