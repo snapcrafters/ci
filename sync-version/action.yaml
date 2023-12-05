@@ -29,28 +29,28 @@ runs:
       shell: bash
       run: |
         if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
-          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+          yaml-path="${{ inputs.snapcraft-yaml-path }}"
         else
-          snapcraft_yaml_paths=(
+          snapcraft-yaml-paths=(
             "snap/snapcraft.yaml"
             "snapcraft.yaml"
             "build-aux/snap/snapcraft.yaml"
             ".snapcraft.yaml"
           )
           
-          for file in "${snapcraft_yaml_paths[@]}"; do
+          for file in "${snapcraft-yaml-paths[@]}"; do
               if [[ -f "$file" ]]; then
-                  yaml_path="$file"
+                  yaml-path="$file"
               fi
           done
         fi
-        if [[ ! -n "${yaml_path}" ]]; then
+        if [[ ! -n "${yaml-path}" ]]; then
            echo "No snapcraft.yaml found" >2
            exit 1
         fi
-        echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
-        echo "prev_version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "yaml-path=${yaml-path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml-path")" >> "$GITHUB_OUTPUT"
+        echo "prev_version=$(yq -r '.version' "$yaml-path")" >> "$GITHUB_OUTPUT"
 
     - name: Run update script
       shell: bash
@@ -68,12 +68,12 @@ runs:
       if: steps.git-check.outputs.modified == 'true'
       shell: bash
       with:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
+        yaml-path: ${{ steps.yaml-path.outputs.yaml-path }}
         prev_version: ${{ steps.yaml-path.outputs.prev_version }}
       env:
         SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name || github.event.repository.name }}
       run: |
-        new_version="$(yq -r '.version' "$yaml_path")"
+        new_version="$(yq -r '.version' "$yaml-path")"
         if [[ ! "$prev_version" == "$new_version" ]]; then
             version=$new_version
         fi
