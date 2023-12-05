@@ -71,16 +71,16 @@ runs:
            echo "No snapcraft.yaml found" >2
            exit 1
         fi
-        echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "snap_name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
 
     - name: Build the snap (${{ inputs.architecture }})
       id: build
       shell: bash
       env:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
-        name: ${{ steps.yaml-path.outputs.snap_name }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
+        name: ${{ steps.yaml-path.outputs.snap-name }}
         arch: ${{ inputs.architecture }}
       run : |
         # Remove the architecture definition from the snapcraft.yaml due to:
@@ -107,7 +107,7 @@ runs:
       id: parse
       shell: bash
       env:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
       run : |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
