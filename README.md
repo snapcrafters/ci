@@ -14,6 +14,11 @@ The actions in this repo are all used during the build, test and release of our 
 - [snapcrafters/ci/sync-version](sync-version/README.md)
 - [snapcrafters/ci/test-snap-build](test-snap-build/README.md)
 
+## Other CI infrastructure
+
+- [terraform plans](terraform/)
+- [general automation scripts](scripts/)
+
 ### Usage
 
 You can see examples of these actions in use in the following repos:
