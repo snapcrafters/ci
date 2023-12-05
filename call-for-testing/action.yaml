@@ -20,8 +20,8 @@ inputs:
   github-token:
     description: "A token with permissions to create issues on the repository"
     required: true
-  snapcraft-yaml-path:
-    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+  snapcraft-project-root:
+    description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
   store-token:
     description: "A token with permissions to upload to the specified channel"
@@ -53,7 +53,7 @@ runs:
       id: snapcraft-yaml
       uses: snapcrafters/ci/parse-snapcraft-yaml@main
       with:
-        snapcraft-yaml-path: ${{ inputs.snapcraft-yaml-path }}
+        snapcraft-project-root: ${{ inputs.snapcraft-project-root }}
 
     - name: Write the arch/rev table
       shell: bash

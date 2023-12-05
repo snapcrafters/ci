@@ -60,14 +60,14 @@ jobs:
 
 ### Inputs
 
-| Key                   | Description                                                                                                                                                                             | Required | Default           |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------- |
-| `architectures`       | The architectures that the snap supports.                                                                                                                                               |    Y     |                   |
-| `ci-repo`             | The repo to fetch tools/templates from. Only for debugging.                                                                                                                             |    N     | `snapcrafters/ci` |
-| `channel`             | The channel to create the call for testing for.                                                                                                                                         |    N     | `candidate`       |
-| `github-token`        | A token with permissions to create issues on the repository.                                                                                                                            |    Y     |                   |
-| `snapcraft-yaml-path` | The path to the `snapcraft.yaml` file.                                                                                                                                                  |    N     |
-| `store-token`         | A token with permissions to query the specified channel in the Snap Store. Only required if the revisions to test are not passed to the workflow by the `release-to-candidate` workflow |    N     |                   |
+| Key                      | Description                                                                                                                                                                             | Required | Default           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------- |
+| `architectures`          | The architectures that the snap supports.                                                                                                                                               |    Y     |                   |
+| `ci-repo`                | The repo to fetch tools/templates from. Only for debugging.                                                                                                                             |    N     | `snapcrafters/ci` |
+| `channel`                | The channel to create the call for testing for.                                                                                                                                         |    N     | `candidate`       |
+| `github-token`           | A token with permissions to create issues on the repository.                                                                                                                            |    Y     |                   |
+| `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`.                                                       |    N     |
+| `store-token`            | A token with permissions to query the specified channel in the Snap Store. Only required if the revisions to test are not passed to the workflow by the `release-to-candidate` workflow |    N     |                   |
 
 ### Outputs
 

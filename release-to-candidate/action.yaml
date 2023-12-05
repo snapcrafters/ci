@@ -17,8 +17,8 @@ inputs:
   launchpad-token:
     description: "A token with permissions to create remote builds on Launchpad"
     required: true
-  snapcraft-yaml-path:
-    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+  snapcraft-project-root:
+    description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
   store-token:
     description: "A token with permissions to upload to the specified channel"
@@ -50,7 +50,7 @@ runs:
       id: snapcraft-yaml
       uses: snapcrafters/ci/parse-snapcraft-yaml@main
       with:
-        snapcraft-yaml-path: ${{ inputs.snapcraft-yaml-path }}
+        snapcraft-project-root: ${{ inputs.snapcraft-project-root }}
 
     - name: Build the snap (${{ inputs.architecture }})
       id: build
@@ -60,11 +60,13 @@ runs:
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
+        project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
       run: |
         # Remove the architecture definition from the snapcraft.yaml due to:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
         yq -i 'del(.architectures)' "$yaml_path"
 
+        cd "$project_root" || exit 
         snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
