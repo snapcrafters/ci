@@ -23,9 +23,7 @@ inputs:
   snapcraft-yaml-path:
     description: "Custom path to snapcraft.yaml for when it is not in the default location."
     required: false
-  snap-name:
-    description: "Name of the snap"
-    required: false
+
 
 outputs:
   revision:
@@ -74,6 +72,7 @@ runs:
            exit 1
         fi
         echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
 
     - name: Build the snap (${{ inputs.architecture }})
@@ -82,7 +81,7 @@ runs:
       with:
         yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
       env:
-        name: ${{ inputs.snap-name || github.event.repository.name }}
+        name: ${{ steps.yaml-path.outputs.snap-name || github.event.repository.name }}
         arch: ${{ inputs.architecture }}
       run : |
         # Remove the architecture definition from the snapcraft.yaml due to:
