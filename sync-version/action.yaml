@@ -15,9 +15,6 @@ inputs:
   snapcraft-yaml-path:
     description: "Custom path to snapcraft.yaml for when it is not in the default location."
     required: false
-  snap-name:
-    description: "Name of the snap."
-    required: false
 
 runs:
   using: composite
@@ -52,6 +49,7 @@ runs:
            exit 1
         fi
         echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
         echo "prev_version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
     - name: Run update script
@@ -73,7 +71,7 @@ runs:
         yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
         prev_version: ${{ steps.yaml-path.outputs.prev_version }}
       env:
-        SNAP_NAME: ${{ inputs.snap-name || github.event.repository.name }}
+        SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name || github.event.repository.name }}
       run: |
         new_version="$(yq -r '.version' "$yaml_path")"
         if [[ ! "$prev_version" == "$new_version" ]]; then
