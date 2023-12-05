@@ -27,15 +27,15 @@ jobs:
 
 ### Inputs
 
-| Key                   | Description                                                                                                        | Required | Default                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------ | :------: | :---------------------------- |
-| `issue-number`        | The issue number to post the screenshots to.                                                                       |    Y     |                               |
-| `ci-repo`             | The repo to fetch tools/templates from. Only for debugging.                                                        |    N     | `snapcrafters/ci`             |
-| `channel`             | The channel to create the call for testing for.                                                                    |    N     | `candidate`                   |
-| `github-token`        | A token with permissions to common on issues in the repository.                                                    |    Y     |                               |
-| `screenshots-repo`    | The repository where screenshots should be uploaded.                                                               |    N     | `snapcrafters/ci-screenshots` |
-| `screenshots-token`   | A token with permissions to commit screenshots to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots) |    Y     |                               |
-| `snapcraft-yaml-path` | The path to the `snapcraft.yaml` file.                                                                             |    N     |
+| Key                      | Description                                                                                                                       | Required | Default                       |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------------------- |
+| `issue-number`           | The issue number to post the screenshots to.                                                                                      |    Y     |                               |
+| `ci-repo`                | The repo to fetch tools/templates from. Only for debugging.                                                                       |    N     | `snapcrafters/ci`             |
+| `channel`                | The channel to create the call for testing for.                                                                                   |    N     | `candidate`                   |
+| `github-token`           | A token with permissions to common on issues in the repository.                                                                   |    Y     |                               |
+| `screenshots-repo`       | The repository where screenshots should be uploaded.                                                                              |    N     | `snapcrafters/ci-screenshots` |
+| `screenshots-token`      | A token with permissions to commit screenshots to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots)                |    Y     |                               |
+| `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`. |    N     |
 
 ### Outputs
 

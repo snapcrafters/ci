@@ -2,7 +2,7 @@
 
 This action is more for use internally than otherwise. It's purpose is to either find a snapcraft.yaml file from a list of known common locations in a repository, or take the path to a snapcraft.yaml, then parse some information from it and provide that information as outputs.
 
-You only need to specify the `snapcraft-yaml-path` input if your `snapcraft.yaml` is not in one of the following locations:
+You only need to specify the `snapcraft-project-root` input if your `snapcraft.yaml` is not in one of the following locations:
 
 - `.snapcraft.yaml`
 - `build-aux/snap/snapcraft.yaml`
@@ -34,17 +34,18 @@ jobs:
 
 ### Inputs
 
-| Key                   | Description                            | Required | Default |
-| --------------------- | -------------------------------------- | :------: | :------ |
-| `snapcraft-yaml-path` | The path to the `snapcraft.yaml` file. |    N     |         |
+| Key                      | Description                                                                                                                       | Required | Default |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | :------: | :------ |
+| `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`. |    N     |         |
 
 ### Outputs
 
-| Key          | Description                                                                         | Example                    |
-| ------------ | ----------------------------------------------------------------------------------- | -------------------------- |
-| `classic`    | Whether to snap is strictly confined                                                | `false`                    |
-| `plugs-file` | The location of a plugs declaration file to be used during review, if one was found | `./plugs-declaration.json` |
-| `slots-file` | The location of a slots declaration file to be used during review, if one was found | `./slots-declaration.json` |
-| `snap_name`  | The name of the snap as declared in the snapcraft.yaml                              | `signal-desktop`           |
-| `version`    | The version declared in the snapcraft.yaml file                                     | `6.41.0`                   |
-| `yaml_path`  | The path to the snapcraft.yaml for the project                                      | `snap/snapcraft.yaml`      |
+| Key            | Description                                                                                      | Example                    |
+| -------------- | ------------------------------------------------------------------------------------------------ | -------------------------- |
+| `classic`      | Whether to snap is strictly confined                                                             | `false`                    |
+| `plugs-file`   | The location of a plugs declaration file to be used during review, if one was found              | `./plugs-declaration.json` |
+| `project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. | `./ffmpeg-2204-sdk`        |
+| `slots-file`   | The location of a slots declaration file to be used during review, if one was found              | `./slots-declaration.json` |
+| `snap_name`    | The name of the snap as declared in the snapcraft.yaml                                           | `signal-desktop`           |
+| `version`      | The version declared in the snapcraft.yaml file                                                  | `6.41.0`                   |
+| `yaml_path`    | The path to the snapcraft.yaml for the project                                                   | `snap/snapcraft.yaml`      |

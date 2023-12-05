@@ -24,9 +24,9 @@ jobs:
 
 ### Inputs
 
-| Key                   | Description                            | Required | Default |
-| --------------------- | -------------------------------------- | :------: | :------ |
-| `snapcraft-yaml-path` | The path to the `snapcraft.yaml` file. |    N     |         |
+| Key                      | Description                                                                                                                       | Required | Default |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | :------: | :------ |
+| `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`. |    N     |         |
 
 ### Outputs
 
