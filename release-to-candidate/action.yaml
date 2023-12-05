@@ -20,6 +20,10 @@ inputs:
   store-token:
     description: "A token with permissions to upload to the specified channel"
     required: true
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+    required: false
+
 
 outputs:
   revision:
@@ -43,23 +47,56 @@ runs:
         git config --global user.email "github-actions@github.com"
         git config --global user.name "Github Actions"
 
-        # Install moreutils so we have access to sponge
-        sudo apt-get update; sudo apt-get install -y moreutils
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run : |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            ".snapcraft.yaml"
+          )
+          
+          for file in "${snapcraft_yaml_paths[@]}"; do
+              if [[ -f "$file" ]]; then
+                  yaml_path="$file"
+              fi
+          done
+        fi
+        if [[ ! -n "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found" >2
+           exit 1
+        fi
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+
 
     - name: Build the snap (${{ inputs.architecture }})
       id: build
       shell: bash
       env:
-        name: ${{ github.event.repository.name }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
+        name: ${{ steps.yaml-path.outputs.snap-name }}
         arch: ${{ inputs.architecture }}
       run : |
         # Remove the architecture definition from the snapcraft.yaml due to:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
-        cat snap/snapcraft.yaml | yq 'del(.architectures)' | sponge snap/snapcraft.yaml
+        yq -i 'del(.architectures)' "$yaml_path"
 
         snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"
 
-        version="$(cat snap/snapcraft.yaml | yq -r '.version')"
+        version="$(yq -r '.version' "$yaml_path")"
+        if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
+            echo "Could not find ${name}_${version}_${arch}.snap"
+            cat "${name}_${arch}.txt"
+            exit 1
+        else
+            cat "${name}_${arch}.txt"
+        fi
         echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
 
         # Write the manifest file which is used by later steps
@@ -69,12 +106,14 @@ runs:
     - name: Parse snap review information
       id: parse
       shell: bash
+      env:
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
       run : |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
 
         # Check for classic confinement and update the output if the snap is classic
-        if [[ "$(cat snap/snapcraft.yaml | yq -r '.confinement')" == "classic" ]]; then
+        if [[ "$(yq -r '.confinement' "$yaml_path")" == "classic" ]]; then
           echo "classic=true" >> "$GITHUB_OUTPUT"
         fi
 
