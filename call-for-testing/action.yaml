@@ -49,40 +49,19 @@ runs:
       run: |
         sudo snap install snapcraft --classic
 
-    - name: Find the snapcraft.yaml path
-      id: yaml-path
-      shell: bash
-      run: |
-        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
-          yaml_path="${{ inputs.snapcraft-yaml-path }}"
-        else
-          snapcraft_yaml_paths=(
-            "snap/snapcraft.yaml"
-            "snapcraft.yaml"
-            "build-aux/snap/snapcraft.yaml"
-            ".snapcraft.yaml"
-          )
-          
-          for file in "${snapcraft_yaml_paths[@]}"; do
-              if [[ -f "$file" ]]; then
-                  yaml_path="$file"
-              fi
-          done
-        fi
-        if [[ -z "${yaml_path}" ]]; then
-           echo "No snapcraft.yaml found"
-           exit 1
-        fi
-        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+    - name: Find and parse snapcraft.yaml
+      id: snapcraft-yaml
+      uses: snapcrafters/ci/parse-snapcraft-yaml@main
+      with:
+        snapcraft-yaml-path: ${{ inputs.snapcraft-yaml-path }}
 
     - name: Write the arch/rev table
       shell: bash
       id: build
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
-        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
-        snapcraft_yaml: ${{ steps.yaml-path.outputs.yaml-path }}
+        snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
+        snapcraft_yaml: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
       run: |
         revisions=()
 
@@ -121,8 +100,6 @@ runs:
         # Get a comma separated list of revisions
         printf -v joined '%s,' "${revisions[@]}"
 
-        version="$(yq -r '.version' "$snapcraft_yaml")"
-        echo "version=${version}" >> "$GITHUB_OUTPUT"
         echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
         echo "table=${table}" >> "$GITHUB_OUTPUT"
 
@@ -136,10 +113,10 @@ runs:
       id: issue
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
+        snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         channel: ${{ inputs.channel }}
         revisions: ${{ steps.build.outputs.revisions }}
         table: ${{ steps.build.outputs.table }}
-        version: ${{ steps.build.outputs.version }}
+        version: ${{ steps.snapcraft-yaml.outputs.version }}
       with:
         filename: ./template.md

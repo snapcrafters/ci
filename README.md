@@ -11,6 +11,7 @@ listed below has it's own README
 - [snapcrafters/ci/call-for-testing](call-for-testing/README.md)
 - [snapcrafters/ci/get-architectures](get-architectures/README.md)
 - [snapcrafters/ci/get-screenshots](get-screenshots/README.md)
+- [snapcrafters/ci/parse-snapcraft-yaml](parse-snapcraft-yaml/README.md)
 - [snapcrafters/ci/promote-to-stable](promote-to-stable/README.md)
 - [snapcrafters/ci/release-to-candidate](release-to-candidate/README.md)
 - [snapcrafters/ci/sync-version](sync-version/README.md)

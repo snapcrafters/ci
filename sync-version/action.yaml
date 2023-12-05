@@ -24,33 +24,11 @@ runs:
       with:
         token: ${{ inputs.token }}
 
-    - name: Find the snapcraft.yaml path
-      id: yaml-path
-      shell: bash
-      run: |
-        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
-          yaml_path="${{ inputs.snapcraft-yaml-path }}"
-        else
-          snapcraft_yaml_paths=(
-            "snap/snapcraft.yaml"
-            "snapcraft.yaml"
-            "build-aux/snap/snapcraft.yaml"
-            ".snapcraft.yaml"
-          )
-          
-          for file in "${snapcraft_yaml_paths[@]}"; do
-              if [[ -f "$file" ]]; then
-                  yaml_path="$file"
-              fi
-          done
-        fi
-        if [[ -z "${yaml_path}" ]]; then
-           echo "No snapcraft.yaml found"
-           exit 1
-        fi
-        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
-        echo "prev-version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
+    - name: Find and parse snapcraft.yaml
+      id: snapcraft-yaml
+      uses: snapcrafters/ci/parse-snapcraft-yaml@main
+      with:
+        snapcraft-yaml-path: ${{ inputs.snapcraft-yaml-path }}
 
     - name: Run update script
       shell: bash
@@ -69,18 +47,18 @@ runs:
       if: steps.git-check.outputs.modified == 'true'
       shell: bash
       env:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
-        prev_version: ${{ steps.yaml-path.outputs.prev-version }}
-        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
+        snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
+        old_version: ${{ steps.snapcraft-yaml.outputs.version }}
+        yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
       run: |
         new_version="$(yq -r '.version' "$yaml_path")"
-        if [[ ! "$prev_version" == "$new_version" ]]; then
+        if [[ ! "$old_version" == "$new_version" ]]; then
             version=$new_version
         fi
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
         if [[ -n "${version:-}" ]]; then
-            git commit -am "chore: bump ${snap_name} to version $version"
+            git commit -am "chore: bump ${snap_name} to version ${version}"
         else
             git commit -am "chore: bump ${snap_name} dependencies"
         fi
