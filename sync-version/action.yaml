@@ -29,18 +29,18 @@ runs:
       shell: bash
       run: |
         if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
-          yaml-path="${{ inputs.snapcraft-yaml-path }}"
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
         else
-          snapcraft-yaml-paths=(
+          snapcraft_yaml_paths=(
             "snap/snapcraft.yaml"
             "snapcraft.yaml"
             "build-aux/snap/snapcraft.yaml"
             ".snapcraft.yaml"
           )
           
-          for file in "${snapcraft-yaml-paths[@]}"; do
+          for file in "${snapcraft_yaml_paths[@]}"; do
               if [[ -f "$file" ]]; then
-                  yaml-path="$file"
+                  yaml_path="$file"
               fi
           done
         fi
@@ -48,9 +48,9 @@ runs:
            echo "No snapcraft.yaml found" >2
            exit 1
         fi
-        echo "yaml-path=${yaml-path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml-path")" >> "$GITHUB_OUTPUT"
-        echo "prev-version=$(yq -r '.version' "$yaml-path")" >> "$GITHUB_OUTPUT"
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "prev-version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
     - name: Run update script
       shell: bash
@@ -67,15 +67,14 @@ runs:
     - name: Commit changes
       if: steps.git-check.outputs.modified == 'true'
       shell: bash
-      with:
-        yaml-path: ${{ steps.yaml-path.outputs.yaml-path }}
-        prev-version: ${{ steps.yaml-path.outputs.prev-version }}
       env:
+        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
+        prev_version: ${{ steps.yaml-path.outputs.prev-version }}
         SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
-        new-version="$(yq -r '.version' "$yaml-path")"
-        if [[ ! "$prev-version" == "$new-version" ]]; then
-            version=$new-version
+        new_version="$(yq -r '.version' "$yaml-path")"
+        if [[ ! "$prev_version" == "$new_version" ]]; then
+            version=$new_version
         fi
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
