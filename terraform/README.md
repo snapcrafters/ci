@@ -15,7 +15,7 @@
 
 ## Usage
 
-From the directory `tfcrafters`, execute the following commands.
+From the directory `terraform`, execute the following commands.
 
 ```shell
 # Generate the list of repositories
