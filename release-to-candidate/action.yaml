@@ -81,7 +81,7 @@ runs:
       with:
         yaml-path: ${{ steps.yaml-path.outputs.yaml-path }}
       env:
-        name: ${{ steps.yaml-path.outputs.snap-name || github.event.repository.name }}
+        name: ${{ steps.yaml-path.outputs.snap-name }}
         arch: ${{ inputs.architecture }}
       run : |
         # Remove the architecture definition from the snapcraft.yaml due to:
