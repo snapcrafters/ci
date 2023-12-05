@@ -28,7 +28,7 @@ runs:
       id: yaml-path
       shell: bash
       run: |
-        if [[ -n "${{ inputs.snapcraft-yaml-path }} ]]"; then
+        if [[ -n "${{ inputs.snapcraft-yaml-path }} " ]]; then
           yaml_path="${{ inputs.snapcraft-yaml-path }}"
         else
           snapcraft_yaml_paths=(
