@@ -58,7 +58,7 @@ runs:
         yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
       run: |
         # Get the list as a json array. E.g. ["amd64", "arm64"]
-        architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' | "$yaml_path")"
+        architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' "$yaml_path")"
 
         # Get the list as a space-separated string. E.g. "amd64" "arm64"
         architectures="$(yq -r -I=0 -o=csv '[.architectures[]]' "$yaml_path" | tr ',' ' ')"
