@@ -1,0 +1,91 @@
+name: Parse Snapcraft YAML
+description: Finds the snapcraft yaml for a repo and parses key information from it.
+author: Snapcrafters
+branding:
+  icon: code
+  color: orange
+
+inputs:
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+    required: false
+
+outputs:
+  classic:
+    description: "Whether to snap is strictly confined"
+    value: ${{ steps.parse.outputs.classic }}
+  plugs-file:
+    description: "The location of a plugs declaration file to be used during review, if one was found"
+    value: ${{ steps.parse.outputs.plugs-file }}
+  slots-file:
+    description: "The location of a slots declaration file to be used during review, if one was found"
+    value: ${{ steps.parse.outputs.slots-file }}
+  snap-name:
+    description: "The name of the snap as declared in the snapcraft.yaml"
+    value: ${{ steps.parse.outputs.snap-name }}
+  version:
+    description: "The version declared in the snapcraft.yaml file"
+    value: ${{ steps.parse.outputs.version }}
+  yaml-path:
+    description: "The path to the snapcraft.yaml for the project"
+    value: ${{ steps.parse.outputs.yaml-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+
+    - name: Find and parse snapcraft.yaml
+      id: parse
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          common_paths=(
+            ".snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+          )
+          
+          for file in "${common_paths[@]}"; do
+              if [[ -f "$file" ]]; then
+                  yaml_path="$file"
+              fi
+          done
+        fi
+
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
+           exit 1
+        fi
+
+        # Populate defaults
+        echo "classic=false" >> "$GITHUB_OUTPUT"
+
+        # Check for classic confinement and update the output if the snap is classic
+        if [[ "$(yq -r '.confinement' "$yaml_path")" == "classic" ]]; then
+          echo "classic=true" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Declare the common locations for plugs/slots declarations
+        plugs_files=("plug-declaration.json" ".github/plug-declaration.json")
+        slots_files=("slot-declaration.json" ".github/slot-declaration.json")
+
+        for file in "${plugs_files[@]}"; do
+          if [[ -f "$file" ]]; then
+            echo "plugs-file=$file" >> "$GITHUB_OUTPUT"
+          fi
+        done
+
+        for file in "${slots_files[@]}"; do
+          if [[ -f "$file" ]]; then
+            echo "slots-file=$file" >> "$GITHUB_OUTPUT"
+          fi
+        done
+
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"

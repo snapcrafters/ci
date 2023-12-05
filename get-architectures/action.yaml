@@ -24,38 +24,17 @@ runs:
     - name: Checkout the source
       uses: actions/checkout@v4
 
-    - name: Find the snapcraft.yaml path
-      id: yaml-path
-      shell: bash
-      run: |
-        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
-          yaml_path="${{ inputs.snapcraft-yaml-path }}"
-        else
-          snapcraft_yaml_paths=(
-            "snap/snapcraft.yaml"
-            "snapcraft.yaml"
-            "build-aux/snap/snapcraft.yaml"
-            ".snapcraft.yaml"
-          )
-          
-          for file in "${snapcraft_yaml_paths[@]}"; do
-              if [[ -f "$file" ]]; then
-                  yaml_path="$file"
-              fi
-          done
-        fi
-        if [[ -z "${yaml_path}" ]]; then
-           echo "No snapcraft.yaml found"
-           exit 1
-        fi
-        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+    - name: Find and parse snapcraft.yaml
+      id: snapcraft-yaml
+      uses: snapcrafters/ci/parse-snapcraft-yaml@main
+      with:
+        snapcraft-yaml-path: ${{ inputs.snapcraft-yaml-path }}
 
     - name: Compute architectures
       id: architectures
       shell: bash
       env:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
+        yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
       run: |
         # Get the list as a json array. E.g. ["amd64", "arm64"]
         architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' "$yaml_path")"

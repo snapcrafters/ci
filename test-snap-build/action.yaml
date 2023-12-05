@@ -20,75 +20,25 @@ runs:
     - name: Checkout the source
       uses: actions/checkout@v4
 
-    - name: Find the snapcraft.yaml path
-      id: yaml-path
-      shell: bash
-      run: |
-        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
-          yaml_path="${{ inputs.snapcraft-yaml-path }}"
-        else
-          snapcraft_yaml_paths=(
-            "snap/snapcraft.yaml"
-            "snapcraft.yaml"
-            "build-aux/snap/snapcraft.yaml"
-            ".snapcraft.yaml"
-          )
-          
-          for file in "${snapcraft_yaml_paths[@]}"; do
-              if [[ -f "$file" ]]; then
-                  yaml_path="$file"
-              fi
-          done
-        fi
-        if [[ -z "${yaml_path}" ]]; then
-           echo "No snapcraft.yaml found"
-           exit 1
-        fi
-        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+    - name: Find and parse snapcraft.yaml
+      id: snapcraft-yaml
+      uses: snapcrafters/ci/parse-snapcraft-yaml@main
+      with:
+        snapcraft-yaml-path: ${{ inputs.snapcraft-yaml-path }}
 
     - name: Build snap
       uses: snapcore/action-build@v1
       id: build
       with:
-        path: ${{ steps.yaml-path.outputs.yaml-path }}
-
-    - name: Parse snap review information
-      id: parse
-      shell: bash
-      env:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
-      run: |
-        # Populate defaults
-        echo "classic=false" >> "$GITHUB_OUTPUT"
-
-        # Check for classic confinement and update the output if the snap is classic
-        if [[ "$(yq -r '.confinement' "$yaml_path")" == "classic" ]]; then
-          echo "classic=true" >> "$GITHUB_OUTPUT"
-        fi
-
-        # Declare the common locations for plugs/slots declarations
-        plugs_files=("plug-declaration.json" ".github/plug-declaration.json")
-        slots_files=("slot-declaration.json" ".github/slot-declaration.json")
-
-        for file in "${plugs_files[@]}"; do
-          if [[ -f "$file" ]]; then
-            echo "plugs=$file" >> "$GITHUB_OUTPUT"
-          fi
-        done
-
-        for file in "${slots_files[@]}"; do
-          if [[ -f "$file" ]]; then
-            echo "slots=$file" >> "$GITHUB_OUTPUT"
-          fi
-        done
+        path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
 
     - name: Review the built snap
       uses: diddlesnaps/snapcraft-review-action@v1
       with:
         snap: ${{ steps.build.outputs.snap }}
-        isClassic: ${{ steps.parse.outputs.classic }}
-        plugs: ${{ steps.parse.outputs.plugs }}
-        slots: ${{ steps.parse.outputs.slots }}
+        isClassic: ${{ steps.snapcraft-yaml.outputs.classic }}
+        plugs: ${{ steps.snapcraft-yaml.outputs.plugs-file }}
+        slots: ${{ steps.snapcraft-yaml.outputs.slots-file }}
 
     - name: Install the snap
       if: ${{ inputs.install == 'true' }}
