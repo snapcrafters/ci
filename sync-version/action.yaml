@@ -50,7 +50,7 @@ runs:
         fi
         echo "yaml-path=${yaml-path}" >> "$GITHUB_OUTPUT"
         echo "snap-name=$(yq -r '.name' "$yaml-path")" >> "$GITHUB_OUTPUT"
-        echo "prev_version=$(yq -r '.version' "$yaml-path")" >> "$GITHUB_OUTPUT"
+        echo "prev-version=$(yq -r '.version' "$yaml-path")" >> "$GITHUB_OUTPUT"
 
     - name: Run update script
       shell: bash
@@ -69,13 +69,13 @@ runs:
       shell: bash
       with:
         yaml-path: ${{ steps.yaml-path.outputs.yaml-path }}
-        prev_version: ${{ steps.yaml-path.outputs.prev_version }}
+        prev-version: ${{ steps.yaml-path.outputs.prev-version }}
       env:
-        SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name || github.event.repository.name }}
+        SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
-        new_version="$(yq -r '.version' "$yaml-path")"
-        if [[ ! "$prev_version" == "$new_version" ]]; then
-            version=$new_version
+        new-version="$(yq -r '.version' "$yaml-path")"
+        if [[ ! "$prev-version" == "$new-version" ]]; then
+            version=$new-version
         fi
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
