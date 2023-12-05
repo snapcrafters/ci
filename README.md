@@ -23,3 +23,25 @@ You can see examples of these actions in use in the following repos:
 - [signal-desktop](https://github.com/snapcrafters/signal-desktop/main/.github/workflows)
 - [mattermost-desktop](https://github.com/snapcrafters/mattermost-desktop/main/.github/workflows)
 - [discord](https://github.com/snapcrafters/discord/main/.github/workflows)
+
+## Contributing
+
+If you'd like to contribute to this repository, please feel free to fork and create a pull request.
+
+There are a few style guidelines to keep in mind:
+
+- Code should be linted using [Prettier](https://prettier.io/). You can achieve this with `make
+lint` and `make format`. The only requirements are [`npx`](https://www.npmjs.com/package/npx) and
+  [`shellcheck`](https://github.com/koalaman/shellcheck).
+- When defining inputs/outputs in `action.yaml`, or listing them in the tables within `README.md`,
+  they should be listed in alphabetical order for easy reading and updating.
+- Github Action inputs/outputs should be named all lowercase, separated by `-` where needed. The
+  applies to inputs/outputs to actions themselves, and for individual steps within the actions. For
+  example: `snap-name` or `token`.
+- Environment variables referring to repository level secrets and variables should be named all
+  uppercase, and separated by `_`. For example: `SNAPCRAFTERS_BOT_COMMIT`.
+- Step/job level environment variables should be named all lowercase, and separated by `_`. For
+  example: `snap_name` or `yaml_path`.
+- All `bash` variables should be quoted.
+- Scripts of all kinds, including those within actions `run:|` directives should follow the [Google
+  styleguide](https://google.github.io/styleguide/shellguide.html)

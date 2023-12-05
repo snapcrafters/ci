@@ -24,7 +24,9 @@ jobs:
 
 ### Inputs
 
-None
+| Key                   | Description                            | Required | Default |
+| --------------------- | -------------------------------------- | :------: | :------ |
+| `snapcraft-yaml-path` | The path to the `snapcraft.yaml` file. |    N     |         |
 
 ### Outputs
 

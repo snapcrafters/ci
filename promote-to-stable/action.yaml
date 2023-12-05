@@ -9,12 +9,12 @@ inputs:
   github-token:
     description: "A token with permissions to write issues on the repository"
     required: true
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+    required: false
   store-token:
     description: "A token with permissions to upload to the specified channel"
     required: true
-  snap-name:
-    description: "The name of the snap to promote"
-    required: false
 
 runs:
   using: composite
@@ -35,15 +35,43 @@ runs:
       run: |
         sudo snap install --classic snapcraft
 
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            ".snapcraft.yaml"
+          )
+          
+          for file in "${snapcraft_yaml_paths[@]}"; do
+              if [[ -f "$file" ]]; then
+                  yaml_path="$file"
+              fi
+          done
+        fi
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
+           exit 1
+        fi
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+
     - name: Promote snap to latest/stable
       id: promote
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
-        SNAP_NAME: ${{ inputs.snap-name || github.event.repository.name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
       shell: bash
       run: |
         echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
-        
+
+        # shellcheck disable=SC1083,SC2206
         arguments=(${{ steps.command.outputs.command-arguments }})
         revision=${arguments[0]}
         channel=${arguments[1]}
@@ -66,20 +94,20 @@ runs:
         fi
 
         # Iterate over each specified revision and release
-        revs=$(echo $revision | tr "," "\n")
+        revs=$(echo "$revision" | tr "," "\n")
         released_revs=()
 
         for r in $revs; do
-          snapcraft release $SNAP_NAME "$r" "$channel"
+          snapcraft release "$snap_name" "$r" "$channel"
           released_revs+=("$r")
         done
 
         # Get a comma separated list of released revisions
         printf -v joined '%s,' "${released_revs[@]}"
 
-        echo "revisions=${joined%,}" >> $GITHUB_OUTPUT
-        echo "channel=$channel" >> $GITHUB_OUTPUT
-        echo "done=$done" >> $GITHUB_OUTPUT
+        echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
+        echo "channel=$channel" >> "$GITHUB_OUTPUT"
+        echo "done=$done" >> "$GITHUB_OUTPUT"
 
     - name: Comment on call for testing issue
       uses: actions/github-script@v7

@@ -20,6 +20,9 @@ inputs:
   github-token:
     description: "A token with permissions to comment on issues"
     required: true
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+    required: false
   screenshots-repo:
     description: "The repository where screenshots should be uploaded."
     default: "snapcrafters/ci-screenshots"
@@ -51,24 +54,51 @@ runs:
       with:
         name: manifests
 
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            ".snapcraft.yaml"
+          )
+          
+          for file in "${snapcraft_yaml_paths[@]}"; do
+              if [[ -f "$file" ]]; then
+                  yaml_path="$file"
+              fi
+          done
+        fi
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
+           exit 1
+        fi
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+
     - name: Prepare VM
       shell: bash
       env:
-        SNAP_NAME: ${{ github.event.repository.name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
         ghvmctl prepare
 
         # If we got a manifest file then parse the revision from it
         if ls manifest-amd64.yaml &>/dev/null; then
-          rev="$(cat manifest-amd64.yaml | yq -r '.revision')"
+          rev="$(yq -r '.revision' manifest-amd64.yaml)"
           echo "Installing snap revision '${rev}' from build manifest"
-          ghvmctl install-snap "${SNAP_NAME}" --revision "${rev}"
+          ghvmctl install-snap "${snap_name}" --revision "${rev}"
         else
           echo "Installing snap from 'latest/${{ inputs.channel}}'"
-          ghvmctl install-snap "${SNAP_NAME}" --channel "latest/${{ inputs.channel }}"
+          ghvmctl install-snap "${snap_name}" --channel "latest/${{ inputs.channel }}"
         fi
 
-        ghvmctl run-snap "${SNAP_NAME}"
+        ghvmctl run-snap "${snap_name}"
         sleep 60
 
     - name: Gather screenshots
@@ -80,13 +110,13 @@ runs:
     - name: Output application logs
       shell: bash
       env:
-        SNAP_NAME: ${{ github.event.repository.name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
-        ghvmctl exec "cat /home/ubuntu/${SNAP_NAME}.log"
+        ghvmctl exec "cat /home/ubuntu/${snap_name}.log"
 
     - name: Checkout screenshots repo
       uses: actions/checkout@v4
-      with: 
+      with:
         repository: ${{ inputs.screenshots-repo }}
         path: ci-screenshots
         token: ${{ inputs.screenshots-token }}
@@ -95,11 +125,11 @@ runs:
       shell: bash
       id: screenshots
       env:
-        SNAP_NAME: ${{ github.event.repository.name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
-        file_prefix="$(date +%Y%m%d)-${SNAP_NAME}-${{ inputs.issue-number }}"
+        file_prefix="$(date +%Y%m%d)-${snap_name}-${{ inputs.issue-number }}"
 
-        pushd ci-screenshots
+        pushd ci-screenshots || exit 1
         mv "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
         mv "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
 
@@ -107,7 +137,7 @@ runs:
         git config --global user.name "Snapcrafters Bot"
 
         git add -A .
-        git commit -m "data: screenshots for snapcrafters/${SNAP_NAME}#${{ inputs.issue-number }}"
+        git commit -m "data: screenshots for snapcrafters/${snap_name}#${{ inputs.issue-number }}"
         git push origin main
 
         echo "screen=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-screen.png" >> "$GITHUB_OUTPUT"

@@ -20,6 +20,9 @@ inputs:
   github-token:
     description: "A token with permissions to create issues on the repository"
     required: true
+  snapcraft-yaml-path:
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
+    required: false
   store-token:
     description: "A token with permissions to upload to the specified channel"
     required: false
@@ -40,18 +43,46 @@ runs:
       uses: actions/download-artifact@v3
       with:
         name: "manifests"
-    
+
     - name: Setup snapcraft
       shell: bash
       run: |
         sudo snap install snapcraft --classic
+
+    - name: Find the snapcraft.yaml path
+      id: yaml-path
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
+        else
+          snapcraft_yaml_paths=(
+            "snap/snapcraft.yaml"
+            "snapcraft.yaml"
+            "build-aux/snap/snapcraft.yaml"
+            ".snapcraft.yaml"
+          )
+          
+          for file in "${snapcraft_yaml_paths[@]}"; do
+              if [[ -f "$file" ]]; then
+                  yaml_path="$file"
+              fi
+          done
+        fi
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
+           exit 1
+        fi
+        echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
     - name: Write the arch/rev table
       shell: bash
       id: build
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
-        SNAP_NAME: ${{ github.event.repository.name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
+        snapcraft_yaml: ${{ steps.yaml-path.outputs.yaml-path }}
       run: |
         revisions=()
 
@@ -63,10 +94,10 @@ runs:
           echo "Found build manifests - populating template with revisions from the manifests"
           
           # Iterate over the manifest files and write the table rows for each architecture
-          for file in $(ls manifest-*.yaml); do
+          for file in manifest-*.yaml; do
             # Parse the arch and the revision
-            arch="$(cat "${file}" | yq -r '.architecture')"
-            rev="$(cat "${file}" | yq -r '.revision')"
+            arch="$(yq -r '.architecture' "${file}")"
+            rev="$(yq -r '.revision' "${file}")"
             # Write the table row and add the revision to the list we're tracking
             table="${table}<tr><td>${arch}</td><td>${rev}</td></tr>"
             revisions+=("$rev")
@@ -75,8 +106,9 @@ runs:
           echo "No build manifests found - populating template with information from the store"
           
           # Otherwise, get the latest revision for each architecture in the release channel
+          # shellcheck disable=SC1083
           for arch in ${{ inputs.architectures }}; do
-            rev="$(snapcraft list-revisions "${SNAP_NAME}" --arch "$arch" | grep "latest/${{ inputs.channel }}*" | head -n1 | cut -d' ' -f1)"
+            rev="$(snapcraft list-revisions "${snap_name}" --arch "$arch" | grep "latest/${{ inputs.channel }}*" | head -n1 | cut -d' ' -f1)"
             revisions+=("$rev")
             # Add a row to the HTML table
             table="${table}<tr><td>${arch}</td><td>${rev}</td></tr>"
@@ -89,7 +121,7 @@ runs:
         # Get a comma separated list of revisions
         printf -v joined '%s,' "${revisions[@]}"
 
-        version="$(cat snap/snapcraft.yaml | yq -r '.version')"
+        version="$(yq -r '.version' "$snapcraft_yaml")"
         echo "version=${version}" >> "$GITHUB_OUTPUT"
         echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
         echo "table=${table}" >> "$GITHUB_OUTPUT"
@@ -98,13 +130,13 @@ runs:
       shell: bash
       run: |
         wget -qO template.md "https://raw.githubusercontent.com/${{ inputs.ci-repo }}/main/call-for-testing/template.md"
-    
+
     - name: Create call for testing issue
       uses: JasonEtco/create-an-issue@v2
       id: issue
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        snap_name: ${{ github.event.repository.name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
         channel: ${{ inputs.channel }}
         revisions: ${{ steps.build.outputs.revisions }}
         table: ${{ steps.build.outputs.table }}
