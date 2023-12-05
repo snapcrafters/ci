@@ -36,9 +36,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Checkout the source
-      uses: actions/checkout@v4
-
     - name: Find and parse snapcraft.yaml
       id: parse
       shell: bash
