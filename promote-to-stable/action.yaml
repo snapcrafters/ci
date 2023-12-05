@@ -19,6 +19,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Checkout the source
+      uses: actions/checkout@v4
+
     - name: Parse slash command
       id: command
       uses: xt0rted/slash-command-action@v2
@@ -29,6 +32,20 @@ runs:
         reaction-type: "eyes"
         allow-edits: "false"
         permission-level: write
+
+    - name: Get valid revisions for promotion
+      id: valid-revisions
+      uses: actions/github-script@v7
+      with:
+        result-encoding: string
+        script: |
+          const issue = await github.rest.issues.get({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          })
+
+          return issue.data.body.match(/\/promote ([0-9,]+)/)[1].split(",").join(" ")
 
     - name: Install snapcraft
       shell: bash
@@ -67,6 +84,7 @@ runs:
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
         snap_name: ${{ steps.yaml-path.outputs.snap-name }}
+        valid_revisions: ${{ steps.valid-revisions.outputs.result }}
       shell: bash
       run: |
         echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
@@ -96,16 +114,24 @@ runs:
         # Iterate over each specified revision and release
         revs=$(echo "$revision" | tr "," "\n")
         released_revs=()
+        rejected_revs=()
 
         for r in $revs; do
-          snapcraft release "$snap_name" "$r" "$channel"
-          released_revs+=("$r")
+          if [[ "$valid_revisions" =~ (^|[[:space:]])"$r"($|[[:space:]]) ]]; then
+            snapcraft release "$snap_name" "$r" "$channel"
+            released_revs+=("$r")
+          else
+            rejected_revs+=("$r")
+            echo "Not promoting revision '$r' because the revision is not related to this test."
+          fi
         done
 
         # Get a comma separated list of released revisions
         printf -v joined '%s,' "${released_revs[@]}"
+        printf -v joined_rejected '%s,' "${rejected_revs[@]}"
 
         echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
+        echo "rejected=${joined_rejected%,}" >> "$GITHUB_OUTPUT"
         echo "channel=$channel" >> "$GITHUB_OUTPUT"
         echo "done=$done" >> "$GITHUB_OUTPUT"
 
@@ -113,11 +139,20 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
+          let message = ""
+          if ("${{ steps.promote.outputs.revisions }}".length > 0) {
+            message += 'The following revisions were released to the `${{ steps.promote.outputs.channel }}` channel: `${{ steps.promote.outputs.revisions }}`. '
+          }
+
+          if ("${{ steps.promote.outputs.rejected }}".length > 0) {
+            message += 'The following revisions were not released, because they are unrelated to this call for testing: `${{ steps.promote.outputs.rejected }}`. '
+          }
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: 'The following revisions were released to the `${{ steps.promote.outputs.channel }}` channel: `${{ steps.promote.outputs.revisions }}`'
+            body: message
           })
 
     - name: Close call for testing issue
@@ -125,7 +160,7 @@ runs:
       uses: actions/github-script@v7
       with:
         script: |
-          if ("${{ steps.promote.outputs.done }}" === "done") {
+          if ("${{ steps.promote.outputs.done }}" === "done" && "${{ steps.promote.outputs.revisions }}".length > 0) {
             github.rest.issues.update({
               issue_number: context.issue.number,
               owner: context.repo.owner,
