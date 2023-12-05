@@ -1,6 +1,6 @@
 # snapcrafters/ci/parse-snapcraft-yaml
 
-This action is more for use internally than otherwise. It's purpose is to either find a snapcraft.yaml file from a list of known common locations in a repository, or take the path to a snapcraft.yaml, then parse some information from it and provide that information as outputs.
+This action is more for use internally than otherwise. It's purpose is to either find a snapcraft.yaml file from a list of known common locations in a repository, or take the path to a snapcraft.yaml, then parse some information from it and provide that information as outputs. This action **will not** checkout the source code, and expects that to have already happened.
 
 You only need to specify the `snapcraft-project-root` input if your `snapcraft.yaml` is not in one of the following locations:
 
