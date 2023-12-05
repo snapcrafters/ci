@@ -72,7 +72,7 @@ runs:
         prev_version: ${{ steps.yaml-path.outputs.prev-version }}
         snap_name: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
-        new_version="$(yq -r '.version' "$yaml-path")"
+        new_version="$(yq -r '.version' "$yaml_path")"
         if [[ ! "$prev_version" == "$new_version" ]]; then
             version=$new_version
         fi
