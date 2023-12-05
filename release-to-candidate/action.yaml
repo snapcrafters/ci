@@ -24,7 +24,6 @@ inputs:
     description: "A token with permissions to upload to the specified channel"
     required: true
 
-
 outputs:
   revision:
     description: "The revision of the uploaded snap"
@@ -50,7 +49,7 @@ runs:
     - name: Find the snapcraft.yaml path
       id: yaml-path
       shell: bash
-      run : |
+      run: |
         if [[ -n "${{ inputs.snapcraft-yaml-path }}" ]]; then
           yaml_path="${{ inputs.snapcraft-yaml-path }}"
         else
@@ -74,7 +73,6 @@ runs:
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
         echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
-
     - name: Build the snap (${{ inputs.architecture }})
       id: build
       shell: bash
@@ -82,7 +80,7 @@ runs:
         yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
         name: ${{ steps.yaml-path.outputs.snap-name }}
         arch: ${{ inputs.architecture }}
-      run : |
+      run: |
         # Remove the architecture definition from the snapcraft.yaml due to:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
         yq -i 'del(.architectures)' "$yaml_path"
@@ -108,7 +106,7 @@ runs:
       shell: bash
       env:
         yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
-      run : |
+      run: |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
 
@@ -120,7 +118,7 @@ runs:
         # Declare the common locations for plugs/slots declarations
         plugs_files=("plug-declaration.json" ".github/plug-declaration.json")
         slots_files=("slot-declaration.json" ".github/slot-declaration.json")
-        
+
         for file in "${plugs_files[@]}"; do
           if [[ -f "$file" ]]; then
             echo "plugs=$file" >> "$GITHUB_OUTPUT"

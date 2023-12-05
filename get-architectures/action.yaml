@@ -59,7 +59,7 @@ runs:
       run: |
         # Get the list as a json array. E.g. ["amd64", "arm64"]
         architectures_list="$(cat "$yaml_path" | yq -r -I=0 -o=json '[.architectures[]]')"
-        
+
         # Get the list as a space-separated string. E.g. "amd64" "arm64"
         architectures="$(cat "$yaml_path" | yq -r -I=0 -o=csv '[.architectures[]]' | tr ',' ' ')"
 

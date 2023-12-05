@@ -11,7 +11,7 @@ inputs:
     default: "false"
     required: false
   snapcraft-yaml-path:
-    description: "Custom path to snapcraft.yaml for when it is not in the default location." 
+    description: "Custom path to snapcraft.yaml for when it is not in the default location."
     required: false
 
 runs:
@@ -50,14 +50,14 @@ runs:
       uses: snapcore/action-build@v1
       id: build
       with:
-        path: ${{ steps.yaml-path.outputs.yaml-path }} 
+        path: ${{ steps.yaml-path.outputs.yaml-path }}
 
     - name: Parse snap review information
       id: parse
       shell: bash
       env:
         yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
-      run : |
+      run: |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
 
@@ -69,7 +69,7 @@ runs:
         # Declare the common locations for plugs/slots declarations
         plugs_files=("plug-declaration.json" ".github/plug-declaration.json")
         slots_files=("slot-declaration.json" ".github/slot-declaration.json")
-        
+
         for file in "${plugs_files[@]}"; do
           if [[ -f "$file" ]]; then
             echo "plugs=$file" >> "$GITHUB_OUTPUT"

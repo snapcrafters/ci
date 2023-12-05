@@ -53,7 +53,7 @@ runs:
       uses: actions/download-artifact@v3
       with:
         name: manifests
-    
+
     - name: Find the snapcraft.yaml path
       id: yaml-path
       shell: bash
@@ -116,7 +116,7 @@ runs:
 
     - name: Checkout screenshots repo
       uses: actions/checkout@v4
-      with: 
+      with:
         repository: ${{ inputs.screenshots-repo }}
         path: ci-screenshots
         token: ${{ inputs.screenshots-token }}

@@ -34,7 +34,7 @@ runs:
       shell: bash
       run: |
         sudo snap install --classic snapcraft
-    
+
     - name: Find the snapcraft.yaml path
       id: yaml-path
       shell: bash
@@ -70,7 +70,7 @@ runs:
       shell: bash
       run: |
         echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
-        
+
         arguments=(${{ steps.command.outputs.command-arguments }})
         revision=${arguments[0]}
         channel=${arguments[1]}

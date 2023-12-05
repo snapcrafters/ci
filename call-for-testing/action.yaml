@@ -43,12 +43,12 @@ runs:
       uses: actions/download-artifact@v3
       with:
         name: "manifests"
-    
+
     - name: Setup snapcraft
       shell: bash
       run: |
         sudo snap install snapcraft --classic
-    
+
     - name: Find the snapcraft.yaml path
       id: yaml-path
       shell: bash
@@ -129,7 +129,7 @@ runs:
       shell: bash
       run: |
         wget -qO template.md "https://raw.githubusercontent.com/${{ inputs.ci-repo }}/main/call-for-testing/template.md"
-    
+
     - name: Create call for testing issue
       uses: JasonEtco/create-an-issue@v2
       id: issue
