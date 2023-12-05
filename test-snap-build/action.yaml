@@ -40,8 +40,8 @@ runs:
               fi
           done
         fi
-        if [[ ! -n "${yaml_path}" ]]; then
-           echo "No snapcraft.yaml found" >2
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
            exit 1
         fi
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
@@ -94,4 +94,4 @@ runs:
       if: ${{ inputs.install == 'true' }}
       shell: bash
       run: |
-        sudo snap install --classic --dangerous ${{ steps.build.outputs.snap }}
+        sudo snap install --classic --dangerous "${{ steps.build.outputs.snap }}"

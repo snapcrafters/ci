@@ -44,8 +44,8 @@ runs:
               fi
           done
         fi
-        if [[ ! -n "${yaml-path}" ]]; then
-           echo "No snapcraft.yaml found" >2
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
            exit 1
         fi
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
@@ -55,14 +55,15 @@ runs:
     - name: Run update script
       shell: bash
       run: |
+        # shellcheck disable=SC2288,SC2086,SC1083
         ${{ inputs.update-script }}
 
     - name: Check for modified files
       shell: bash
       id: git-check
       run: |
-        MODIFIED=$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
-        echo "modified=$MODIFIED" >> $GITHUB_OUTPUT
+        MODIFIED=$([ -z "$(git status --porcelain)" ] && echo "false" || echo "true")
+        echo "modified=$MODIFIED" >> "$GITHUB_OUTPUT"
 
     - name: Commit changes
       if: steps.git-check.outputs.modified == 'true'

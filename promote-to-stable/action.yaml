@@ -55,8 +55,8 @@ runs:
               fi
           done
         fi
-        if [[ ! -n "${yaml-path}" ]]; then
-           echo "No snapcraft.yaml found" >2
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
            exit 1
         fi
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
@@ -71,6 +71,7 @@ runs:
       run: |
         echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
 
+        # shellcheck disable=SC1083,SC2206
         arguments=(${{ steps.command.outputs.command-arguments }})
         revision=${arguments[0]}
         channel=${arguments[1]}
@@ -93,20 +94,20 @@ runs:
         fi
 
         # Iterate over each specified revision and release
-        revs=$(echo $revision | tr "," "\n")
+        revs=$(echo "$revision" | tr "," "\n")
         released_revs=()
 
         for r in $revs; do
-          snapcraft release $snap_name "$r" "$channel"
+          snapcraft release "$snap_name" "$r" "$channel"
           released_revs+=("$r")
         done
 
         # Get a comma separated list of released revisions
         printf -v joined '%s,' "${released_revs[@]}"
 
-        echo "revisions=${joined%,}" >> $GITHUB_OUTPUT
-        echo "channel=$channel" >> $GITHUB_OUTPUT
-        echo "done=$done" >> $GITHUB_OUTPUT
+        echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
+        echo "channel=$channel" >> "$GITHUB_OUTPUT"
+        echo "done=$done" >> "$GITHUB_OUTPUT"
 
     - name: Comment on call for testing issue
       uses: actions/github-script@v7

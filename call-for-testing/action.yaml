@@ -69,8 +69,8 @@ runs:
               fi
           done
         fi
-        if [[ ! -n "${yaml-path}" ]]; then
-           echo "No snapcraft.yaml found" >2
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
            exit 1
         fi
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
@@ -94,10 +94,10 @@ runs:
           echo "Found build manifests - populating template with revisions from the manifests"
           
           # Iterate over the manifest files and write the table rows for each architecture
-          for file in $(ls manifest-*.yaml); do
+          for file in manifest-*.yaml; do
             # Parse the arch and the revision
-            arch="$(cat "${file}" | yq -r '.architecture')"
-            rev="$(cat "${file}" | yq -r '.revision')"
+            arch="$(yq -r '.architecture' "${file}")"
+            rev="$(yq -r '.revision' "${file}")"
             # Write the table row and add the revision to the list we're tracking
             table="${table}<tr><td>${arch}</td><td>${rev}</td></tr>"
             revisions+=("$rev")
@@ -106,6 +106,7 @@ runs:
           echo "No build manifests found - populating template with information from the store"
           
           # Otherwise, get the latest revision for each architecture in the release channel
+          # shellcheck disable=SC1083
           for arch in ${{ inputs.architectures }}; do
             rev="$(snapcraft list-revisions "${snap_name}" --arch "$arch" | grep "latest/${{ inputs.channel }}*" | head -n1 | cut -d' ' -f1)"
             revisions+=("$rev")
@@ -120,7 +121,7 @@ runs:
         # Get a comma separated list of revisions
         printf -v joined '%s,' "${revisions[@]}"
 
-        version="$(cat "$snapcraft_yaml" | yq -r '.version')"
+        version="$(yq -r '.version' "$snapcraft_yaml")"
         echo "version=${version}" >> "$GITHUB_OUTPUT"
         echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
         echo "table=${table}" >> "$GITHUB_OUTPUT"

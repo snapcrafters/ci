@@ -44,8 +44,8 @@ runs:
               fi
           done
         fi
-        if [[ ! -n "${yaml-path}" ]]; then
-           echo "No snapcraft.yaml found" >2
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
            exit 1
         fi
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
@@ -58,15 +58,15 @@ runs:
         yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
       run: |
         # Get the list as a json array. E.g. ["amd64", "arm64"]
-        architectures_list="$(cat "$yaml_path" | yq -r -I=0 -o=json '[.architectures[]]')"
+        architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' | "$yaml_path")"
 
         # Get the list as a space-separated string. E.g. "amd64" "arm64"
-        architectures="$(cat "$yaml_path" | yq -r -I=0 -o=csv '[.architectures[]]' | tr ',' ' ')"
+        architectures="$(yq -r -I=0 -o=csv '[.architectures[]]' "$yaml_path" | tr ',' ' ')"
 
         # Handle the case where architectures is a list of objects
         if echo "$architectures" | grep -q "build-on"; then
-            architectures_list="$(cat "$yaml_path" | yq -r -I=0 -o=json '[.architectures[]."build-on"]')"
-            architectures="$(cat "$yaml_path" | yq -r -I=0 -o=csv '[.architectures[]."build-on"]' | tr ',' ' ')"
+            architectures_list="$(yq -r -I=0 -o=json '[.architectures[]."build-on"]' "$yaml_path")"
+            architectures="$(yq -r -I=0 -o=csv '[.architectures[]."build-on"]' "$yaml_path" | tr ',' ' ')"
         fi
 
         echo "architectures_list=$architectures_list" >> "$GITHUB_OUTPUT"

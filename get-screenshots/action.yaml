@@ -74,8 +74,8 @@ runs:
               fi
           done
         fi
-        if [[ ! -n "${yaml-path}" ]]; then
-           echo "No snapcraft.yaml found" >2
+        if [[ -z "${yaml_path}" ]]; then
+           echo "No snapcraft.yaml found"
            exit 1
         fi
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
@@ -90,7 +90,7 @@ runs:
 
         # If we got a manifest file then parse the revision from it
         if ls manifest-amd64.yaml &>/dev/null; then
-          rev="$(cat manifest-amd64.yaml | yq -r '.revision')"
+          rev="$(yq -r '.revision' manifest-amd64.yaml)"
           echo "Installing snap revision '${rev}' from build manifest"
           ghvmctl install-snap "${snap_name}" --revision "${rev}"
         else
@@ -129,7 +129,7 @@ runs:
       run: |
         file_prefix="$(date +%Y%m%d)-${snap_name}-${{ inputs.issue-number }}"
 
-        pushd ci-screenshots
+        pushd ci-screenshots || exit 1
         mv "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
         mv "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
 
