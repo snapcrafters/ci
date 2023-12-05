@@ -50,7 +50,7 @@ runs:
       uses: snapcore/action-build@v1
       id: build
       with:
-        path: ${{ steps.yaml-path.outputs.yaml_path }} 
+        path: ${{ steps.yaml-path.outputs.yaml-path }} 
 
     - name: Parse snap review information
       id: parse
