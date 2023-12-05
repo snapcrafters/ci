@@ -27,11 +27,12 @@ jobs:
 
 ### Inputs
 
-| Key            | Description                                                                              | Required | Default |
-| -------------- | ---------------------------------------------------------------------------------------- | :------: | :------ |
-| `github-token` | A token with permissions to write issues on the repository                               |    Y     |         |
-| `store-token`  | A token with permissions to upload and release to the `stable` channel in the Snap Store |    Y     |         |
-| `snap-name`    | The name of the snap to promote                                                          |    N     |         |
+| Key                   | Description                                                                              | Required | Default |
+| --------------------- | ---------------------------------------------------------------------------------------- | :------: | :------ |
+| `github-token`        | A token with permissions to write issues on the repository                               |    Y     |         |
+| `store-token`         | A token with permissions to upload and release to the `stable` channel in the Snap Store |    Y     |         |
+| `snap-name`           | The name of the snap to promote                                                          |    N     |         |
+| `snapcraft-yaml-path` | The path to the `snapcraft.yaml` file.                                                   |    N     |
 
 ### Outputs
 

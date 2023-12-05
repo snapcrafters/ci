@@ -70,7 +70,7 @@ runs:
       env:
         yaml_path: ${{ steps.yaml-path.outputs.yaml-path }}
         prev_version: ${{ steps.yaml-path.outputs.prev-version }}
-        SNAP_NAME: ${{ steps.yaml-path.outputs.snap-name }}
+        snap_name: ${{ steps.yaml-path.outputs.snap-name }}
       run: |
         new_version="$(yq -r '.version' "$yaml-path")"
         if [[ ! "$prev_version" == "$new_version" ]]; then
@@ -79,8 +79,8 @@ runs:
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
         if [[ -n "${version:-}" ]]; then
-            git commit -am "chore: bump ${SNAP_NAME} to version $version"
+            git commit -am "chore: bump ${snap_name} to version $version"
         else
-            git commit -am "chore: bump ${SNAP_NAME} dependencies"
+            git commit -am "chore: bump ${snap_name} dependencies"
         fi
         git push
