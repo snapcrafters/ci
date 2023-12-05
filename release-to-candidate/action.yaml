@@ -72,16 +72,15 @@ runs:
            exit 1
         fi
         echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "snap_name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
 
     - name: Build the snap (${{ inputs.architecture }})
       id: build
       shell: bash
-      with:
-        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
       env:
-        name: ${{ steps.yaml-path.outputs.snap-name }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
+        name: ${{ steps.yaml-path.outputs.snap_name }}
         arch: ${{ inputs.architecture }}
       run : |
         # Remove the architecture definition from the snapcraft.yaml due to:
@@ -107,7 +106,7 @@ runs:
     - name: Parse snap review information
       id: parse
       shell: bash
-      with:
+      env:
         yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
       run : |
         # Populate defaults
