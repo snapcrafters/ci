@@ -12,6 +12,9 @@ inputs:
   store-token:
     description: "A token with permissions to upload to the specified channel"
     required: true
+  snap-name:
+    description: "The name of the snap to promote"
+    required: false
 
 runs:
   using: composite
@@ -36,7 +39,7 @@ runs:
       id: promote
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
-        SNAP_NAME: ${{ github.event.repository.name }}
+        SNAP_NAME: ${{ inputs.snap-name || github.event.repository.name }}
       shell: bash
       run: |
         echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
