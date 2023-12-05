@@ -17,12 +17,12 @@ inputs:
   launchpad-token:
     description: "A token with permissions to create remote builds on Launchpad"
     required: true
-  store-token:
-    description: "A token with permissions to upload to the specified channel"
-    required: true
   snapcraft-yaml-path:
     description: "Custom path to snapcraft.yaml for when it is not in the default location."
     required: false
+  store-token:
+    description: "A token with permissions to upload to the specified channel"
+    required: true
 
 
 outputs:

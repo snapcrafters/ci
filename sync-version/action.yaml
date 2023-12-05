@@ -6,15 +6,15 @@ branding:
   color: orange
 
 inputs:
-  update-script:
-    description: "Bash script that fetches the latest version and updates the source tree as required."
-    required: true
-  token:
-    required: true
-    description: A token with write privileges to the repository.
   snapcraft-yaml-path:
     description: "Custom path to snapcraft.yaml for when it is not in the default location."
     required: false
+  token:
+    required: true
+    description: A token with write privileges to the repository.
+  update-script:
+    description: "Bash script that fetches the latest version and updates the source tree as required."
+    required: true
 
 runs:
   using: composite
