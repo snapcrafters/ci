@@ -52,45 +52,45 @@ runs:
       shell: bash
       run : |
         if [[ -n "${{ inputs.snapcraft-yaml-path }}"; then
-          yaml-path="${{ inputs.snapcraft-yaml-path }}"
+          yaml_path="${{ inputs.snapcraft-yaml-path }}"
         else
-          snapcraft-yaml-paths=(
+          snapcraft_yaml_paths=(
             "snap/snapcraft.yaml"
             "snapcraft.yaml"
             "build-aux/snap/snapcraft.yaml"
             ".snapcraft.yaml"
           )
           
-          for file in "${snapcraft-yaml-paths[@]}"; do
+          for file in "${snapcraft_yaml_paths[@]}"; do
               if [[ -f "$file" ]]; then
-                  yaml-path="$file"
+                  yaml_path="$file"
               fi
           done
         fi
-        if [[ ! -n "${yaml-path}" ]]; then
+        if [[ ! -n "${yaml_path}" ]]; then
            echo "No snapcraft.yaml found" >2
            exit 1
         fi
-        echo "yaml-path=${yaml-path}" >> "$GITHUB_OUTPUT"
-        echo "snap-name=$(yq -r '.name' "$yaml-path")" >> "$GITHUB_OUTPUT"
+        echo "yaml_path=${yaml_path}" >> "$GITHUB_OUTPUT"
+        echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
 
 
     - name: Build the snap (${{ inputs.architecture }})
       id: build
       shell: bash
       with:
-        yaml-path: ${{ steps.yaml-path.outputs.yaml-path }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
       env:
         name: ${{ steps.yaml-path.outputs.snap-name }}
         arch: ${{ inputs.architecture }}
       run : |
         # Remove the architecture definition from the snapcraft.yaml due to:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
-        yq -i 'del(.architectures)' "$yaml-path"
+        yq -i 'del(.architectures)' "$yaml_path"
 
         snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"
 
-        version="$(yq -r '.version' "$yaml-path")"
+        version="$(yq -r '.version' "$yaml_path")"
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
             cat "${name}_${arch}.txt"
@@ -108,13 +108,13 @@ runs:
       id: parse
       shell: bash
       with:
-        yaml-path: ${{ steps.yaml-path.outputs.yaml-path }}
+        yaml_path: ${{ steps.yaml-path.outputs.yaml_path }}
       run : |
         # Populate defaults
         echo "classic=false" >> "$GITHUB_OUTPUT"
 
         # Check for classic confinement and update the output if the snap is classic
-        if [[ "$(yq -r '.confinement' "$yaml-path")" == "classic" ]]; then
+        if [[ "$(yq -r '.confinement' "$yaml_path")" == "classic" ]]; then
           echo "classic=true" >> "$GITHUB_OUTPUT"
         fi
 
