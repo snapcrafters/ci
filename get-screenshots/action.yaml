@@ -71,13 +71,13 @@ runs:
         if ls manifest-amd64.yaml &>/dev/null; then
           rev="$(yq -r '.revision' manifest-amd64.yaml)"
           echo "Installing snap revision '${rev}' from build manifest"
-          ghvmctl install-snap "${snap_name}" --revision "${rev}"
+          ghvmctl snap-install "${snap_name}" --revision "${rev}"
         else
           echo "Installing snap from 'latest/${{ inputs.channel}}'"
-          ghvmctl install-snap "${snap_name}" --channel "latest/${{ inputs.channel }}"
+          ghvmctl snap-install "${snap_name}" --channel "latest/${{ inputs.channel }}"
         fi
 
-        ghvmctl run-snap "${snap_name}"
+        ghvmctl snap-run "${snap_name}"
         sleep 60
 
     - name: Gather screenshots
