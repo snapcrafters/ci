@@ -31,7 +31,7 @@ jobs:
           ghvmctl exec "cat /home/ubuntu/signal-desktop.log"
 
       - name: Upload screenshots
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v4
         with:
           name: "screenshots"
           path: "~/ghvmctl-screenshots/*.png"
