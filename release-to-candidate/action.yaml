@@ -17,6 +17,9 @@ inputs:
   launchpad-token:
     description: "A token with permissions to create remote builds on Launchpad"
     required: true
+  repo-token:
+    required: true
+    description: A token with privileges to create and push tags to the repository.
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
@@ -34,6 +37,8 @@ runs:
   steps:
     - name: Checkout the source
       uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.repo-token }}
 
     - name: Setup snapcraft
       shell: bash
@@ -108,3 +113,16 @@ runs:
       with:
         name: "manifests"
         path: "manifest-${{ inputs.architecture }}.yaml"
+
+    # Create a tag in the repo that corresponds to the revision pushed
+    - name: Create tag
+      shell: bash
+      run: |
+        git config --global user.name 'Snapcrafters Bot'
+        git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
+
+        revision="${{ steps.publish.outputs.revision }}"
+        tag_name="rev${revision}/${{ inputs.architecture }}"
+
+        git tag -a "$tag_name" -m "Revision ${revision}, released for ${{ inputs.architecture }}"
+        git push origin "$tag_name"
