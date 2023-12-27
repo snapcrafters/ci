@@ -48,11 +48,10 @@ runs:
     - name: Setup ghvmctl
       uses: snapcrafters/ci/setup-ghvmctl@main
 
-    - name: Download manifest files (if available)
-      continue-on-error: true
-      uses: actions/download-artifact@v3
+    - name: Fetch build manifests
+      uses: snapcrafters/ci/fetch-manifests@main
       with:
-        name: manifests
+        token: ${{ inputs.github-token }}
 
     - name: Find and parse snapcraft.yaml
       id: snapcraft-yaml

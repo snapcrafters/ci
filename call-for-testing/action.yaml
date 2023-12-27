@@ -38,11 +38,10 @@ runs:
     - name: Checkout the source
       uses: actions/checkout@v4
 
-    - name: Download manifest files
-      continue-on-error: true
-      uses: actions/download-artifact@v3
+    - name: Fetch build manifests
+      uses: snapcrafters/ci/fetch-manifests@main
       with:
-        name: "manifests"
+        token: ${{ inputs.github-token }}
 
     - name: Setup snapcraft
       shell: bash

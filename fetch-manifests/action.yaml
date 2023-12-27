@@ -1,0 +1,31 @@
+name: Fetch manifests
+description: Downloads and unzips all build manifest artifacts for the current workflow run.
+author: Snapcrafters
+branding:
+  icon: code
+  color: orange
+
+inputs:
+  token:
+    description: "A token with permissions to get artifacts from this repository"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch artifacts
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        # Construct the URL for the API endpoint where the artifacts are available
+        url="/repos/${{ github.repository }}/actions/runs/${GITHUB_RUN_ID}/artifacts"
+
+        # Get a list of IDs for appropriately named artifacts (those starting 'manifest-*')
+        artifacts="$(gh api "$url" --jq '.artifacts[] | select(.name | startswith("manifest-")) | .id')"
+
+        # Iterate over the manifest URLS, downloading and unpacking them one by one
+        for id in $artifacts; do
+          gh api "/repos/${{ github.repository }}/actions/artifacts/${id}/zip" > manifests.zip
+          unzip manifests.zip
+        done
