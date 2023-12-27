@@ -21,8 +21,8 @@ jobs:
         run: |
           # Prepare the VM, install and launch the app on the desktop
           ghvmctl prepare
-          ghvmctl install-snap signal-desktop --channel candidate
-          ghvmctl run-snap signal-desktop
+          ghvmctl snap-install signal-desktop --channel candidate
+          ghvmctl snap-run signal-desktop
 
       - name: Take screenshots & output logs
         run: |
