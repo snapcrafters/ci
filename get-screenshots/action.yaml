@@ -109,8 +109,8 @@ runs:
         file_prefix="$(date +%Y%m%d)-${snap_name}-${{ inputs.issue-number }}"
 
         pushd ci-screenshots || exit 1
-        mv "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
-        mv "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
+        cp -L "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
+        cp -L "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
 
         git config --global user.email "merlijn.sebrechts+snapcrafters-bot@gmail.com"
         git config --global user.name "Snapcrafters Bot"
