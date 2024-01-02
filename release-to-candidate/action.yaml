@@ -117,12 +117,14 @@ runs:
     # Create a tag in the repo that corresponds to the revision pushed
     - name: Create tag
       shell: bash
+      env:
+        version: ${{ steps.snapcraft-yaml.outputs.version }}
       run: |
         git config --global user.name 'Snapcrafters Bot'
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
 
         revision="${{ steps.publish.outputs.revision }}"
-        tag_name="rev${revision}/${{ inputs.architecture }}"
+        tag_name="${version}/rev${revision}/${{ inputs.architecture }}"
 
         git tag -a "$tag_name" -m "Revision ${revision}, released for ${{ inputs.architecture }}"
         git push origin "$tag_name"
