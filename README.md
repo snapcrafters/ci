@@ -19,9 +19,9 @@ The actions in this repo are all used during the build, test and release of our 
 
 You can see examples of these actions in use in the following repos:
 
-- [signal-desktop](https://github.com/snapcrafters/signal-desktop/main/.github/workflows)
-- [mattermost-desktop](https://github.com/snapcrafters/mattermost-desktop/main/.github/workflows)
-- [discord](https://github.com/snapcrafters/discord/main/.github/workflows)
+- [signal-desktop](https://github.com/snapcrafters/signal-desktop/tree/candidate/.github/workflows)
+- [mattermost-desktop](https://github.com/snapcrafters/mattermost-desktop/tree/candidate/.github/workflows)
+- [discord](https://github.com/snapcrafters/discord/tree/candidate/.github/workflows)
 
 ## Contributing
 
