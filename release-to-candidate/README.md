@@ -24,14 +24,15 @@ jobs:
 
 ### Inputs
 
-| Key                      | Description                                                                               | Required | Default     |
-| ------------------------ | ----------------------------------------------------------------------------------------- | :------: | :---------- |
-| `architecture`           | The architecture for which to build the snap.                                             |    N     | `amd64`     |
-| `channel`                | The channel to release the snap to.                                                       |    N     | `candidate` |
-| `launchpad-token`        | A token with permissions to create Launchpad remote builds.                               |    Y     |             |
-| `repo-token`             | A token with privileges to create and push tags to the repository.                        |    Y     |             |
-| `snapcraft-project-root` | The path to the Snapcraft YAML file.                                                      |    N     |             |
-| `store-token`            | A token with permissions to upload and release to the specified channel in the Snap Store |    Y     |             |
+| Key                      | Description                                                                               | Required | Default         |
+| ------------------------ | ----------------------------------------------------------------------------------------- | :------: | :-------------- |
+| `architecture`           | The architecture for which to build the snap.                                             |    N     | `amd64`         |
+| `channel`                | The channel to release the snap to.                                                       |    N     | `candidate`     |
+| `launchpad-token`        | A token with permissions to create Launchpad remote builds.                               |    Y     |                 |
+| `repo-token`             | A token with privileges to create and push tags to the repository.                        |    Y     |
+| `snapcraft-project-root` | The path to the Snapcraft YAML file.                                                      |    N     |                 |
+| `snapcraft-channel`      | The channel to install Snapcraft from.                                                    |    N     | `latest/stable` |
+| `store-token`            | A token with permissions to upload and release to the specified channel in the Snap Store |    Y     |                 |
 
 ### Outputs
 
