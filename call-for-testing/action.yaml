@@ -23,6 +23,10 @@ inputs:
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
+  snapcraft-channel:
+    description: "The channel to install snapcraft from"
+    default: latest/stable
+    required: false
   store-token:
     description: "A token with permissions to upload to the specified channel"
     required: false
@@ -46,7 +50,7 @@ runs:
     - name: Setup snapcraft
       shell: bash
       run: |
-        sudo snap install snapcraft --classic
+        sudo snap install snapcraft --channel "${{inputs.snapcraft-channel}}" --classic
 
     - name: Find and parse snapcraft.yaml
       id: snapcraft-yaml
