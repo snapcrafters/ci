@@ -28,11 +28,12 @@ jobs:
 
 ### Inputs
 
-| Key                      | Description                                                                                                                       | Required |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | :------: |
-| `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`. |    N     |
-| `token`                  | A token with permissions to commit to the repository.                                                                             |    Y     |
-| `update-script`          | A script that checks for version updates and updates `snapcraft.yaml` and other files if required.                                |    Y     |
+| Key                      | Description                                                                                                                       | Required |   Default   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | -------- | :---------: |
+| `branch`                 | The branch on which modifications to snapcraft.yaml should be made.                                                               | N        | `candidate` |
+| `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`. | N        |             |
+| `token`                  | A token with permissions to commit to the repository.                                                                             | Y        |             |
+| `update-script`          | A script that checks for version updates and updates `snapcraft.yaml` and other files if required.                                | Y        |             |
 
 ### Outputs
 

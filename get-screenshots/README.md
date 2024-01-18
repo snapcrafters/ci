@@ -1,6 +1,6 @@
 # snapcrafters/ci/get-screenshots
 
-Deploys the snap from `latest/candidate` in a LXD desktop VM, then takes screenshots of the whole
+Deploys the snap from the specified channel in a LXD desktop VM, then takes screenshots of the whole
 desktop, and the most recent active window after the snap was launched. Screenshots are then
 committed to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots), and added to a comment on
 the original call for testing issue.
@@ -31,7 +31,7 @@ jobs:
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------------------- |
 | `issue-number`           | The issue number to post the screenshots to.                                                                                      |    Y     |                               |
 | `ci-repo`                | The repo to fetch tools/templates from. Only for debugging.                                                                       |    N     | `snapcrafters/ci`             |
-| `channel`                | The channel to create the call for testing for.                                                                                   |    N     | `candidate`                   |
+| `channel`                | The channel to create the call for testing for.                                                                                   |    N     | `latest/candidate`            |
 | `github-token`           | A token with permissions to common on issues in the repository.                                                                   |    Y     |                               |
 | `screenshots-repo`       | The repository where screenshots should be uploaded.                                                                              |    N     | `snapcrafters/ci-screenshots` |
 | `screenshots-token`      | A token with permissions to commit screenshots to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots)                |    Y     |                               |

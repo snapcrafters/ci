@@ -12,7 +12,7 @@ inputs:
     required: false
   channel:
     description: "The channel to publish the snap to"
-    default: "candidate"
+    default: "latest/candidate"
     required: false
   launchpad-token:
     description: "A token with permissions to create remote builds on Launchpad"
@@ -99,7 +99,7 @@ runs:
         plugs: ${{ steps.snapcraft-yaml.outputs.plugs-file }}
         slots: ${{ steps.snapcraft-yaml.outputs.slots-file }}
 
-    - name: Release the built snap to latest/${{ inputs.channel }}
+    - name: Release the built snap to ${{ inputs.channel }}
       id: publish
       shell: bash
       env:

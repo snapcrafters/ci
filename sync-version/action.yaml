@@ -6,6 +6,10 @@ branding:
   color: orange
 
 inputs:
+  branch:
+    description: "The branch on which modifications to snapcraft.yaml should be made."
+    default: "candidate"
+    required: false
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
@@ -23,6 +27,7 @@ runs:
       uses: actions/checkout@v4
       with:
         token: ${{ inputs.token }}
+        ref: ${{ inputs.branch }}
 
     - name: Find and parse snapcraft.yaml
       id: snapcraft-yaml
