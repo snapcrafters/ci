@@ -15,11 +15,15 @@ inputs:
     required: false
   channel:
     description: "The channel to publish the snap to"
-    default: "candidate"
+    default: "latest/candidate"
     required: false
   github-token:
     description: "A token with permissions to create issues on the repository"
     required: true
+  promotion-channel:
+    description: "The channel the snap should be promoted to on successful test"
+    default: "latest/stable"
+    required: false
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
@@ -90,7 +94,7 @@ runs:
           # Otherwise, get the latest revision for each architecture in the release channel
           # shellcheck disable=SC1083
           for arch in ${{ inputs.architectures }}; do
-            rev="$(snapcraft list-revisions "${snap_name}" --arch "$arch" | grep "latest/${{ inputs.channel }}*" | head -n1 | cut -d' ' -f1)"
+            rev="$(snapcraft list-revisions "${snap_name}" --arch "$arch" | grep "${{ inputs.channel }}*" | head -n1 | cut -d' ' -f1)"
             revisions+=("$rev")
             # Add a row to the HTML table
             table="${table}<tr><td>${arch}</td><td>${rev}</td></tr>"
@@ -121,5 +125,6 @@ runs:
         revisions: ${{ steps.build.outputs.revisions }}
         table: ${{ steps.build.outputs.table }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
+        promotion_channel: ${{ inputs.promotion-channel }}
       with:
         filename: ./template.md

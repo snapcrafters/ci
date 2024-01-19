@@ -1,11 +1,15 @@
-name: Promote to latest/stable
-description: Promotes a given set of revisions from candidate -> stable
+name: Promote snap
+description: Promotes a given set of revisions to a specified channel
 author: Snapcrafters
 branding:
   icon: trending-up
   color: orange
 
 inputs:
+  channel:
+    description: "The channel to promote the snap to"
+    default: "latest/stable"
+    required: false
   github-token:
     description: "A token with permissions to write issues on the repository"
     required: true
@@ -62,9 +66,10 @@ runs:
       with:
         snapcraft-project-root: ${{ inputs.snapcraft-project-root }}
 
-    - name: Promote snap to latest/stable
+    - name: Promote snap
       id: promote
       env:
+        channel: ${{ inputs.channel }}
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
         snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         valid_revisions: ${{ steps.valid-revisions.outputs.result }}
@@ -75,7 +80,7 @@ runs:
         # shellcheck disable=SC1083,SC2206
         arguments=(${{ steps.command.outputs.command-arguments }})
         revision=${arguments[0]}
-        channel=${arguments[1]}
+        requested_channel=${arguments[1]}
         done=${arguments[2]}
 
         re='^[0-9]+([,][0-9]+)*$'
@@ -84,8 +89,8 @@ runs:
           exit 1
         fi
 
-        if [[ "$channel" != "stable"  ]]; then
-          echo "I can only promote to stable, not '$channel'!"
+        if [[ "$requested_channel" != "$channel" ]]; then
+          echo "I can only promote to ${channel}, not '$requested_channel'!"
           exit 1
         fi
 
@@ -101,7 +106,7 @@ runs:
 
         for r in $revs; do
           if [[ "$valid_revisions" =~ (^|[[:space:]])"$r"($|[[:space:]]) ]]; then
-            snapcraft release "$snap_name" "$r" "$channel"
+            snapcraft release "$snap_name" "$r" "$requested_channel"
             released_revs+=("$r")
           else
             rejected_revs+=("$r")
@@ -115,7 +120,7 @@ runs:
 
         echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
         echo "rejected=${joined_rejected%,}" >> "$GITHUB_OUTPUT"
-        echo "channel=$channel" >> "$GITHUB_OUTPUT"
+        echo "channel=$requested_channel" >> "$GITHUB_OUTPUT"
         echo "done=$done" >> "$GITHUB_OUTPUT"
 
     - name: Comment on call for testing issue

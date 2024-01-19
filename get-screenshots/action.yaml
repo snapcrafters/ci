@@ -14,8 +14,8 @@ inputs:
     default: "snapcrafters/ci"
     required: false
   channel:
-    description: "The channel to publish the snap to"
-    default: "candidate"
+    description: "The channel to install the snap from"
+    default: "latest/candidate"
     required: false
   github-token:
     description: "A token with permissions to comment on issues"
@@ -72,8 +72,8 @@ runs:
           echo "Installing snap revision '${rev}' from build manifest"
           ghvmctl snap-install "${snap_name}" --revision "${rev}"
         else
-          echo "Installing snap from 'latest/${{ inputs.channel}}'"
-          ghvmctl snap-install "${snap_name}" --channel "latest/${{ inputs.channel }}"
+          echo "Installing snap from '${{ inputs.channel}}'"
+          ghvmctl snap-install "${snap_name}" --channel "${{ inputs.channel }}"
         fi
 
         ghvmctl snap-run "${snap_name}"

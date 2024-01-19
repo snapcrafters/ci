@@ -39,7 +39,7 @@ jobs:
 ### Use standalone - `store-token` required
 
 In this mode, the action will use the store token to fetch the latest revision on the specified
-channel (`candidate` by default) for each architecture and populate the call for testing with those
+channel (`latest/candidate` by default) for each architecture and populate the call for testing with those
 revisions.
 
 ```yaml
@@ -60,15 +60,16 @@ jobs:
 
 ### Inputs
 
-| Key                      | Description                                                                                                                                                                             | Required | Default           |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------- |
-| `architectures`          | The architectures that the snap supports.                                                                                                                                               |    Y     |                   |
-| `ci-repo`                | The repo to fetch tools/templates from. Only for debugging.                                                                                                                             |    N     | `snapcrafters/ci` |
-| `channel`                | The channel to create the call for testing for.                                                                                                                                         |    N     | `candidate`       |
-| `github-token`           | A token with permissions to create issues on the repository.                                                                                                                            |    Y     |                   |
-| `snapcraft-channel`      | The channel to install Snapcraft from.                                                                                                                                                  |    N     | `latest/stable`   |
+| Key                      | Description                                                                                                                                                                             | Required | Default            |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------: | :----------------- |
+| `architectures`          | The architectures that the snap supports.                                                                                                                                               |    Y     |                    |
+| `ci-repo`                | The repo to fetch tools/templates from. Only for debugging.                                                                                                                             |    N     | `snapcrafters/ci`  |
+| `channel`                | The channel to create the call for testing for.                                                                                                                                         |    N     | `latest/candidate` |
+| `github-token`           | A token with permissions to create issues on the repository.                                                                                                                            |    Y     |                    |
+| `promotion-channel`      | The channel the snap should be promoted to on successful test.                                                                                                                          |    N     | `latest/stable`    |
+| `snapcraft-channel`      | The channel to install Snapcraft from.                                                                                                                                                  |    N     | `latest/stable`    |
 | `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`.                                                       |    N     |
-| `store-token`            | A token with permissions to query the specified channel in the Snap Store. Only required if the revisions to test are not passed to the workflow by the `release-to-candidate` workflow |    N     |                   |
+| `store-token`            | A token with permissions to query the specified channel in the Snap Store. Only required if the revisions to test are not passed to the workflow by the `release-to-candidate` workflow |    N     |                    |
 
 ### Outputs
 
