@@ -29,16 +29,16 @@ The snap will be installed in a VM automatically; screenshots will be posted as 
 
 ## How to release it
 
-Maintainers can promote this to stable by commenting `/promote <rev>[,<rev>] ${{ env.promotion_channel }} [done]`.
+Maintainers can promote this to stable by commenting `/promote <rev>[,<rev>] {{ env.promotion_channel }} [done]`.
 
 > For example
 >
-> - To promote a single revision, run `/promote <rev> ${{ env.promotion_channel }}`
-> - To promote multiple revisions, run `/promote <rev>,<rev> ${{ env.promotion_channel }}`
-> - To promote a revision and close the issue, run `/promote <rev>,<rev> ${{ env.promotion_channel }} done`
+> - To promote a single revision, run `/promote <rev> {{ env.promotion_channel }}`
+> - To promote multiple revisions, run `/promote <rev>,<rev> {{ env.promotion_channel }}`
+> - To promote a revision and close the issue, run `/promote <rev>,<rev> {{ env.promotion_channel }} done`
 
 You can promote all revisions that were just built with:
 
 ```
-/promote {{ env.revisions }} ${{ env.promotion_channel }} done
+/promote {{ env.revisions }} {{ env.promotion_channel }} done
 ```
