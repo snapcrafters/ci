@@ -17,7 +17,7 @@ The snap will be installed in a VM automatically; screenshots will be posted as 
 1. Upgrade to this version by running
 
    ```shell
-   snap refresh {{ env.snap_name }} --{{ env.channel }}
+   snap refresh {{ env.snap_name }} --channel {{ env.channel }}
    ```
 
 1. Start the app and test it out.
