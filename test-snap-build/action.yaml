@@ -14,6 +14,9 @@ inputs:
     description: "The channel to install snapcraft from"
     default: latest/stable
     required: false
+  snapcraft-max-parallel-build-count:
+    description: "Controls the number of parallel builds in the snapcraft pack process."
+    required: false
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
@@ -36,6 +39,7 @@ runs:
       with:
         path: ${{ steps.snapcraft-yaml.outputs.project-root }}
         snapcraft-channel: ${{ inputs.snapcraft-channel }}
+        snapcraft-max-parallel-build-count: ${{ inputs.snacraft-max-parallel-build-count }}
 
     - name: Review the built snap
       uses: diddlesnaps/snapcraft-review-action@v1

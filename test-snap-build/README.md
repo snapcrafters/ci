@@ -34,11 +34,12 @@ jobs:
 
 ### Inputs
 
-| Key                      | Description                                                    | Required | Default         |
-| ------------------------ | -------------------------------------------------------------- | :------: | :-------------- |
-| `install`                | If `true`, the built snap is install on the runner after build |    N     | `false`         |
-| `snapcraft-channel`      | The channel to install Snapcraft from.                         |    N     | `latest/stable` |
-| `snapcraft-project-root` | The path to the Snapcraft YAML file.                           |    N     |                 |
+| Key                                  | Description                                                           | Required | Default         |
+| ------------------------------------ | --------------------------------------------------------------------- | :------: | :-------------- |
+| `install`                            | If `true`, the built snap is install on the runner after build        |    N     | `false`         |
+| `snapcraft-channel`                  | The channel to install Snapcraft from.                                |    N     | `latest/stable` |
+| `snapcraft-max-parallel-build-count` | Controls the number of parallel builds in the snapcraft pack process. |    N     |                 |
+| `snapcraft-project-root`             | The path to the Snapcraft YAML file.                                  |    N     |                 |
 
 ### Outputs
 
