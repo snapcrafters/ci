@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+"""
+Used for generating a store token for a given snap on a given channel, with some specified ACLs.
+"""
+import os
+from argparse import ArgumentParser
+
+from craft_store import *
+
+parser = ArgumentParser()
+parser.add_argument("-a", "--acls", action="store", type=str, help="Comma-separated list of ACLs")
+parser.add_argument(
+    "-s",
+    "--snap",
+    action="store",
+    type=str,
+    help="The snap package to generate the token for",
+)
+parser.add_argument(
+    "-c",
+    "--channel",
+    action="store",
+    type=str,
+    help="The channel to generate the token for",
+)
+
+args = parser.parse_args()
+
+c = UbuntuOneStoreClient(
+    base_url="https://dashboard.snapcraft.io",
+    storage_base_url="https://upload.apps.staging.ubuntu.com",
+    auth_url="https://login.ubuntu.com",
+    endpoints=endpoints.U1_SNAP_STORE,
+    application_name="autotoken",
+    user_agent="snapcrafters-autotoken",
+    ephemeral=True,
+)
+
+token = c.login(
+    permissions=args.acls.split(","),
+    description=f"{args.snap}-{args.channel}",
+    ttl=60 * 60 * 24 * 365,  # 1 year
+    email=os.getenv("SNAPCRAFTERS_USER"),
+    password=os.getenv("SNAPCRAFTERS_PASSWORD"),
+    packages=[endpoints.Package(package_name=args.snap, package_type="snap")],
+    channel=[args.channel],
+)
+
+print(token)

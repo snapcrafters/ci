@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+org="snapcrafters"
+repos=(
+    "android-studio|latest|Candidate Branch"
+    "axel|latest|Candidate Branch"
+    "cumulonimbus|latest|Candidate Branch"
+    "ddgr|latest|Candidate Branch"
+    "discord|latest|Candidate Branch"
+    "ghvmctl|latest|Candidate Branch"
+    "gimp|latest|Candidate Branch"
+    "gimp|preview|Preview Candidate Branch"
+    "helm|latest|Candidate Branch"
+    "jenkins|latest|Candidate Branch"
+    "mattermost-desktop|latest|Candidate Branch"
+    "pyradio|latest|Candidate Branch"
+    "signal-desktop|latest|Candidate Branch"
+    "simplenote|latest|Candidate Branch"
+    "sublime-merge|latest|Candidate Branch"
+    "terraform|latest|Candidate Branch"
+)
+
+# Helper method for writing a secret to a temp file and returning the path
+_sfile() {
+    local secret; secret="$1"
+    local secret_file; secret_file="$(mktemp /tmp/autoken.XXX)"
+    echo "$secret" > "$secret_file"
+    echo "$secret_file"
+}
+
+# Convert a Github App secret & id into an access token for API use
+_get_github_app_token() {
+    local app_id; app_id="$1"
+    local secret; secret="$2"
+    GH_APP_TOKEN="$(./gh-app-token --pem "$(_sfile "$secret")" --app-id "$app_id")"
+    echo "${GH_APP_TOKEN}"
+}
+
+_cleanup_access_tokens() {
+    # Delete all the previously issued PATs because of a bug that stops us looking them up one by one.
+    # The `github-fine-grained-token` app doesn't seem to be able to page through where there are 
+    # many tokens, so this is slow and naive, but does work until I think of something better.
+    while (github-fine-grained-token-client list | grep -qPo "^autoken.+$"); do
+        for token in $(github-fine-grained-token-client list | grep -Po "^autoken.+$"); do
+            github-fine-grained-token-client delete "$token"
+        done
+    done
+}
+
+# Setup the SNAP_STORE_CANDIDATE secret
+_set_store_token_candidate() {
+    local snap; snap="$1"
+    local track; track="$2"
+    local env; env="$3"
+    local acls; acls="package_access,package_push,package_update,package_release"
+    
+    token="$(./craft-token -s "$snap" -a "$acls" -c "${track}/candidate")"
+    gh -R "${org}/${snap}" secret set --env "${env}" "SNAP_STORE_CANDIDATE" < "$(_sfile "$token")"
+}
+
+# Setup the SNAP_STORE_STABLE secret
+_set_store_token_stable() {
+    local snap; snap="$1"
+    local track; track="$2"
+    local env; env="$3"
+    local acls; acls="package_access,package_release"
+
+    token="$(./craft-token -s "$snap" -a "$acls" -c "${track}/stable")"
+    gh -R "${org}/${snap}" secret set -e "${env}" "SNAP_STORE_STABLE" < "$(_sfile "$token")"
+}
+
+# Setup the LP_BUILD_SECRET secret
+_set_launchpad_token() {
+    local snap; snap="$1"
+    local env; env="$2"
+    local acls; acls="package_access,package_release"
+    
+    gh -R "${org}/${snap}" secret set -e "${env}" "LP_BUILD_SECRET" < "$(_sfile "$LP_AUTH")"
+}
+
+# Setup the SNAPCRAFTERS_BOT_COMMIT secret
+_set_snapcrafters_bot_commit_token() {
+    local gh_token; gh_token="$1"
+    export GH_TOKEN="$gh_token"
+    local snap; snap="$2"
+    local env; env="$3"
+
+    local headers
+    headers=("-H" "Accept: application/vnd.github+json" "-H" "X-GitHub-Api-Version: 2022-11-28")
+
+    # Check there aren't any other pending PAT requests in the org. This is a naive check, in that
+    # we check for zero requests now, then create a new request and subsequently approve the first
+    # request in the queue.
+    reqs="$(gh api "${headers[@]}" "/orgs/${org}/personal-access-token-requests" -q 'length')"
+    if [[ "$reqs" != 0 ]]; then
+        echo "Existing PAT requests in the snapcrafters org, clear those first"
+        exit 1
+    fi
+
+    # Create a new PAT for the repo, this will create a "PAT request" in the snapcrafters org
+    token="$(
+        github-fine-grained-token-client create -r "${snap},ci-screenshots" -W contents \
+            --resource-owner snapcrafters "autoken-${snap}-${track}" | grep -Po "github_pat.+$"
+    )"
+
+    # Get the ID of the PAT request we just created
+    req_id="$(gh api "${headers[@]}" "/orgs/${org}/personal-access-token-requests" -q '.[0].id')"
+
+    # Approve the PAT request so the token has access
+    gh api "${headers[@]}" --silent --method POST "/orgs/${org}/personal-access-token-requests" \
+        -F "pat_request_ids[]=$req_id" -f action='approve'
+
+    unset GH_TOKEN
+
+    # Setup the SNAPCRAFTERS_BOT_COMMIT secret on the repo
+    gh -R "${org}/${snap}" secret set -e "${env}" "${org}_BOT_COMMIT" < "$(_sfile "$token")"
+}
+
+main() {
+    gh_api_token="$(_get_github_app_token "${AUTOKEN_APP_ID}" "${AUTOKEN_SECRET}")"
+
+    echo "Cleaning existing access tokens"
+    _cleanup_access_tokens
+
+    # Iterate over each repository
+    for repo in "${repos[@]}"; do
+        snap="$(echo "$repo" | cut -d "|" -f1)"
+        track="$(echo "$repo" | cut -d "|" -f2)"
+        env="$(echo "$repo" | cut -d "|" -f3)"
+        echo "Processing ${snap} ('${track}' track, '${env}' environment)"
+
+        _set_store_token_candidate "$snap" "$track" "$env"
+        _set_store_token_stable "$snap" "$track" "$env"
+        _set_launchpad_token "$snap" "$env"
+        _set_snapcrafters_bot_commit_token "$gh_api_token" "$snap" "$env"
+    done
+
+    rm -f /tmp/autoken.*
+}
+
+main

@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""
+Used for generating a Github access token given an app ID and secret for a Github app.
+"""
+import time
+from argparse import ArgumentParser
+
+import requests
+from jwt import JWT, jwk_from_pem
+
+parser = ArgumentParser()
+parser.add_argument("--pem", action="store", type=str, help="Path to PEM file")
+parser.add_argument("--app-id", action="store", type=str, help="ID of the Github app")
+args = parser.parse_args()
+
+
+def encode_jwt(pem, app_id):
+    with open(pem, "rb") as pem_file:
+        signing_key = jwk_from_pem(pem_file.read())
+
+    payload = {
+        "iat": int(time.time()),  # Issued at time
+        "exp": int(time.time()) + 600,  # JWT expiration time (10 minutes maximum
+        "iss": app_id,  # GitHub App's identifier
+    }
+
+    jwt_instance = JWT()
+    encoded_jwt = jwt_instance.encode(payload, signing_key, alg="RS256")
+    return f"{encoded_jwt}"
+
+
+headers = {
+    "Authorization": f"Bearer {encode_jwt(args.pem, args.app_id)}",
+    "Accept": "application/vnd.github.v3+json",
+}
+
+# Get the access token URL endpoint
+response = requests.get("https://api.github.com/app/installations", headers=headers)
+access_tokens_url = response.json()[0]["access_tokens_url"]
+
+# POST to the access token endpoint to get a token
+response = requests.post(access_tokens_url, headers=headers)
+print(response.json()["token"])
