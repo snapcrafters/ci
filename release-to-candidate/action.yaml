@@ -76,14 +76,15 @@ runs:
         yq -i 'del(.architectures)' "$yaml_path"
 
         cd "$project_root" || exit 
-        snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"
+        if ! snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"; then
+          cat "${name}_${arch}.txt"
+        fi
+
+        cat "${name}_${arch}.txt"
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
-            cat "${name}_${arch}.txt"
             exit 1
-        else
-            cat "${name}_${arch}.txt"
         fi
 
         # Write the manifest file which is used by later steps
