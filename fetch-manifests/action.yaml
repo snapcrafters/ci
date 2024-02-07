@@ -13,6 +13,22 @@ inputs:
 runs:
   using: composite
   steps:
+    # This is a temporary fix for when we're using the Canonical hosted runners and tools aren't
+    # available by default. Can be removed once the ticket is closed.
+    - name: Ensure `gh` tool is installed
+      shell: bash
+      run: |
+        if ! command -v gh; then
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y gh
+        fi
+        if ! command -v unzip; then
+          sudo apt-get update
+          sudo apt-get install -y unzip
+        fi
     - name: Fetch artifacts
       shell: bash
       env:
