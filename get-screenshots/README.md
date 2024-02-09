@@ -35,6 +35,7 @@ jobs:
 | `github-token`           | A token with permissions to common on issues in the repository.                                                                   |    Y     |                               |
 | `screenshots-repo`       | The repository where screenshots should be uploaded.                                                                              |    N     | `snapcrafters/ci-screenshots` |
 | `screenshots-token`      | A token with permissions to commit screenshots to [ci-screenshots](https://github.com/snapcrafters/ci-screenshots)                |    Y     |                               |
+| `snap-application-name`  | The name of the application defined in `snapcraft.yaml` to run for screenshots.                                                   |    N     |                               |
 | `snapcraft-project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. Do not include the trailing `/`. |    N     |
 
 ### Outputs

@@ -20,6 +20,9 @@ inputs:
   github-token:
     description: "A token with permissions to comment on issues"
     required: true
+  snap-application-name:
+    description: "The name of the application defined in `snapcraft.yaml` to run for screenshots."
+    required: false
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
@@ -63,6 +66,7 @@ runs:
       shell: bash
       env:
         snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
+        snap_app: ${{ inputs.snap-application-name }}
       run: |
         ghvmctl prepare
 
@@ -76,7 +80,12 @@ runs:
           ghvmctl snap-install "${snap_name}" --channel "${{ inputs.channel }}"
         fi
 
-        ghvmctl snap-run "${snap_name}"
+        # If the snap-application-name is empty, default to the name of the snap
+        if [[ -z "$snap_app" ]]; then
+          snap_app="$snap_name"
+        fi
+
+        ghvmctl snap-run "${snap_name}.${snap_app}"
         sleep 60
 
     - name: Gather screenshots
