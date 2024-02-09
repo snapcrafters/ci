@@ -6,13 +6,6 @@ branding:
   color: orange
 
 inputs:
-  issue-number:
-    description: "The issue number to post to"
-    required: true
-  ci-repo:
-    description: "The repo to fetch tools/templates from. Only for debugging."
-    default: "snapcrafters/ci"
-    required: false
   channel:
     description: "The channel to install the snap from"
     default: "latest/candidate"
@@ -23,15 +16,6 @@ inputs:
   snapcraft-project-root:
     description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
     required: false
-  test-script:
-    description: "The path to the test script."
-    required: true
-
-outputs:
-  status:
-    description: "Success or failure status of the tests."
-    value: ${{ steps.tests.outputs.status }}
-
 
 runs:
   using: composite
@@ -61,29 +45,6 @@ runs:
           echo "Installing snap revision '${rev}' from build manifest"
           sudo snap install "${snap_name}" --revision "${rev}"
         else
-          echo "Installing snap from '${{ inputs.channel}}'"
+          echo "Installing snap from '${{ inputs.channel }}'"
           sudo snap install "${snap_name}" --channel "${{ inputs.channel }}"
         fi
-    - name: Run tests
-      id: tests
-      shell: bash
-      run: |
-        if (${{ inputs.test-script }}); then
-          echo "status=succeeded" >> $GITHUB_OUTPUT
-        else
-          echo "status=failed with exit code $?" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Comment on call for testing issue with screenshots
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: ${{ inputs.issue-number }},
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `Automated testing ${{ steps.tests.outputs.status }}.
-
-            Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job_id }}
-            `
-          })
