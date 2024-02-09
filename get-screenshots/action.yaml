@@ -98,8 +98,14 @@ runs:
       shell: bash
       env:
         snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
+        snap_app: ${{ inputs.snap-application-name }}
       run: |
-        ghvmctl exec "cat /home/ubuntu/${snap_name}.log"
+        # If the snap-application-name is empty, default to the name of the snap
+        if [[ -z "$snap_app" ]]; then
+          snap_app="$snap_name"
+        fi
+
+        ghvmctl exec "cat /home/ubuntu/${snap_name}.${snap_app}.log"
 
     - name: Checkout screenshots repo
       uses: actions/checkout@v4
