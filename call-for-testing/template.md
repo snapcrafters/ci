@@ -7,9 +7,9 @@ A new version ({{ env.version }}) of `{{ env.snap_name }}` was just pushed to th
 
 {{ env.table }}
 
-## Automated screenshots
+## Automated testing
 
-The snap will be installed in a VM automatically; screenshots will be posted as a comment on this issue shortly.
+If configured, the snap will be installed in a VM, and any test results or screenshots will be posted to this issue as a comment shortly.
 
 ## How to test it manually
 
