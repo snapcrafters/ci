@@ -57,6 +57,7 @@ runs:
 
     - name: Run tests
       id: tests
+      shell: bash
       run: ${{ inputs.test-script }}
 
     - name: Comment on call for testing issue with screenshots
