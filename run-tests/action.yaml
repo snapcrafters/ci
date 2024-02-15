@@ -58,7 +58,9 @@ runs:
     - name: Run tests
       id: tests
       shell: bash
-      run: ${{ inputs.test-script }}
+      run: |
+        # shellcheck disable=SC2288,SC2086,SC1083
+        ${{ inputs.test-script }}
 
     - name: Comment on call for testing issue with test result
       if: success() || failure()
