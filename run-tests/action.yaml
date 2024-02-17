@@ -60,10 +60,7 @@ runs:
       shell: bash
       run: |
         # shellcheck disable=SC2288,SC2086,SC1083
-        ${{ inputs.test-command }} |& tee test-output.txt
-        echo 'output=<<__TEST_EOF__' >> $GITHUB_OUTPUT
-        cat test-output.txt >> $GITHUB_OUTPUT
-        echo '__TEST_EOF__' >> $GITHUB_OUTPUT
+        ${{ inputs.test-command }}
 
     - name: Comment on call for testing issue with test result
       if: success() || failure()
@@ -78,11 +75,6 @@ runs:
 
             ${{ steps.tests.summary }}
 
-            <details><summary>Test command output</summary>
-            ```
-            ${{ steps.tests.outputs.output }}
-            ```
-            </details>
             Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             `
           })
