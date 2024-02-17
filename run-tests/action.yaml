@@ -19,8 +19,8 @@ inputs:
   issue-number:
     description: "Number of the issue comment on."
     required: true
-  test-command:
-    description: "The command to run the tests."
+  test-script:
+    description: "A bash script to run the tests (or simply a command)."
     required: true
 
 runs:
@@ -60,7 +60,7 @@ runs:
       shell: bash
       run: |
         # shellcheck disable=SC2288,SC2086,SC1083
-        ${{ inputs.test-command }}
+        ${{ inputs.test-script }}
         echo "summary_file=${GITHUB_STEP_SUMMARY}" >> "${GITHUB_OUTPUT}"
 
     - name: Comment on call for testing issue with test result
