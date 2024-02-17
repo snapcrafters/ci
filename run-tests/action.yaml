@@ -19,8 +19,8 @@ inputs:
   issue-number:
     description: "Number of the issue comment on."
     required: true
-  test-script:
-    description: "The script to run for testing."
+  test-command:
+    description: "The command to run the tests."
     required: true
 
 runs:
@@ -60,7 +60,10 @@ runs:
       shell: bash
       run: |
         # shellcheck disable=SC2288,SC2086,SC1083
-        ${{ inputs.test-script }}
+        ${{ inputs.test-command }} |& tee test-output.txt
+        echo 'output=<<__TEST_EOF__' >> $GITHUB_OUTPUT
+        cat test-output.txt >> $GITHUB_OUTPUT
+        echo '__TEST_EOF__' >> $GITHUB_OUTPUT
 
     - name: Comment on call for testing issue with test result
       if: success() || failure()
@@ -73,6 +76,13 @@ runs:
             repo: context.repo.repo,
             body: `Automated testing ${{ steps.tests.conclusion }}.
 
+            ${{ steps.tests.summary }}
+
+            <details><summary>Test command output</summary>
+            ```
+            ${{ steps.tests.outputs.output }}
+            ```
+            </details>
             Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             `
           })

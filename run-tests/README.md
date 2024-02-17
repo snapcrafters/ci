@@ -1,4 +1,4 @@
-# snapcrafters/ci/setup-tests
+# snapcrafters/ci/run-tests
 
 Deploys the snap from the specified channel, ready for tests to run.
 
@@ -17,8 +17,7 @@ jobs:
         with:
           issue-number: ${{ needs.call-for-testing.outputs.issue-number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          test-script: |
-            echo "Your test script here."
+          test-command: ./test.sh
 ```
 
 ## API
