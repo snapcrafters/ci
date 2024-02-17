@@ -1,6 +1,6 @@
 # snapcrafters/ci/run-tests
 
-Deploys the snap from the specified channel, ready for tests to run.
+Runs tests on a snap deployed from a specified channel and logs the result to the provided issue. If the given test command writes any markdown to the file in the environment variable `$GITHUB_STEP_SUMMARY`, that will be included in the resulting comment. See [the GitHub workflows documentation](https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary) for more info.
 
 ## Usage
 
