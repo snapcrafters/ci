@@ -61,19 +61,24 @@ runs:
       run: |
         # shellcheck disable=SC2288,SC2086,SC1083
         ${{ inputs.test-command }}
+        echo "summary_file=${GITHUB_STEP_SUMMARY}" >> "${GITHUB_OUTPUT}"
 
     - name: Comment on call for testing issue with test result
       if: success() || failure()
       uses: actions/github-script@v7
       with:
         script: |
+          const fs = require('node:fs');
+          const summary = fs.readFileSync('${{ steps.tests.outputs.summary_file }}', 'utf8');
           github.rest.issues.createComment({
             issue_number: ${{ inputs.issue-number }},
             owner: context.repo.owner,
             repo: context.repo.repo,
             body: `Automated testing ${{ steps.tests.conclusion }}.
 
-            ${{ steps.tests.summary }}
+            ## Summary:
+
+            ${summary}
 
             Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
             `
