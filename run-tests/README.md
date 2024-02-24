@@ -18,8 +18,7 @@ jobs:
           issue-number: ${{ needs.call-for-testing.outputs.issue-number }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           test-script: |
-            echo "Test summary" >> "${GITHUB_STEP_SUMMARY}"
-            ./test.sh
+            echo "The first 100 and last 100 lines of output will be included in a comment on the call for testing."
 ```
 
 ## API
