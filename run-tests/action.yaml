@@ -60,8 +60,19 @@ runs:
       shell: bash
       run: |
         # shellcheck disable=SC2288,SC2086,SC1083
-        ${{ inputs.test-script }}
-        echo "summary_file=${GITHUB_STEP_SUMMARY}" >> "${GITHUB_OUTPUT}"
+        ${{ inputs.test-script }} |& tee raw-output.txt
+
+    - name: Process tests
+      shell: bash
+      if: success() || failure()
+      run: |
+        if [[ $(wc -l raw-output.txt | cut -f1 -d' ') -gt 250 ]]; then
+          head --lines=100 raw-output.txt > test-output.txt
+          echo -e "..." >> test-output.txt
+          tail --lines=100 raw-output.txt >> test-output.txt
+        else
+          mv raw-output.txt test-output.txt
+        fi
 
     - name: Comment on call for testing issue with test result
       if: success() || failure()
@@ -69,7 +80,7 @@ runs:
       with:
         script: |
           const fs = require('node:fs');
-          const summary = fs.readFileSync('${{ steps.tests.outputs.summary_file }}', 'utf8');
+          const summary = fs.readFileSync('test-output.txt', 'utf8');
           github.rest.issues.createComment({
             issue_number: ${{ inputs.issue-number }},
             owner: context.repo.owner,
@@ -78,8 +89,10 @@ runs:
 
             Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-            ## Summary:
-
+            <details><summary>Logs</summary>
+            <pre>
             ${summary}
+            </pre>
+            </details>
             `
           })
