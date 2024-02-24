@@ -90,9 +90,11 @@ runs:
             Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             <details><summary>Logs</summary>
-            <pre>
+
+            \`\`\`
             ${summary}
-            </pre>
+            \`\`\`
+
             </details>
             `
           })
