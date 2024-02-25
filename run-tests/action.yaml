@@ -68,7 +68,7 @@ runs:
       run: |
         if [[ $(wc -l raw-output.txt | cut -f1 -d' ') -gt 250 ]]; then
           head --lines=100 raw-output.txt > test-output.txt
-          echo -e "..." >> test-output.txt
+          echo -e "\n\n(Logs truncated. See full logs at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n" >> test-output.txt
           tail --lines=100 raw-output.txt >> test-output.txt
         else
           mv raw-output.txt test-output.txt
