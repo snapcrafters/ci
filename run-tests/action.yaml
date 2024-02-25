@@ -1,0 +1,100 @@
+name: Run tests
+description: Install a snap and run specified tests for it.
+author: Snapcrafters
+branding:
+  icon: check
+  color: orange
+
+inputs:
+  channel:
+    description: "The channel to install the snap from"
+    default: "latest/candidate"
+    required: false
+  github-token:
+    description: "A token with permissions to comment on issues"
+    required: true
+  snapcraft-project-root:
+    description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
+    required: false
+  issue-number:
+    description: "Number of the issue comment on."
+    required: true
+  test-script:
+    description: "A bash script to run the tests (or simply a command)."
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Fetch build manifests
+      uses: snapcrafters/ci/fetch-manifests@main
+      with:
+        token: ${{ inputs.github-token }}
+
+    - name: Find and parse snapcraft.yaml
+      id: snapcraft-yaml
+      uses: snapcrafters/ci/parse-snapcraft-yaml@main
+      with:
+        snapcraft-project-root: ${{ inputs.snapcraft-project-root }}
+
+    - name: Install snap
+      shell: bash
+      env:
+        snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
+      run: |
+        # If we got a manifest file then parse the revision from it
+        if ls manifest-amd64.yaml &>/dev/null; then
+          rev="$(yq -r '.revision' manifest-amd64.yaml)"
+          echo "Installing snap revision '${rev}' from build manifest"
+          sudo snap install "${snap_name}" --revision "${rev}"
+        else
+          echo "Installing snap from '${{ inputs.channel }}'"
+          sudo snap install "${snap_name}" --channel "${{ inputs.channel }}"
+        fi
+
+    - name: Run tests
+      id: tests
+      shell: bash
+      run: |
+        # shellcheck disable=SC2288,SC2086,SC1083
+        ${{ inputs.test-script }} |& tee raw-output.txt
+
+    - name: Process tests
+      shell: bash
+      if: success() || failure()
+      run: |
+        if [[ $(wc -l raw-output.txt | cut -f1 -d' ') -gt 250 ]]; then
+          head --lines=100 raw-output.txt > test-output.txt
+          echo -e "\n\n(Logs truncated. See full logs at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n" >> test-output.txt
+          tail --lines=100 raw-output.txt >> test-output.txt
+        else
+          mv raw-output.txt test-output.txt
+        fi
+
+    - name: Comment on call for testing issue with test result
+      if: success() || failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('node:fs');
+          const summary = fs.readFileSync('test-output.txt', 'utf8');
+          github.rest.issues.createComment({
+            issue_number: ${{ inputs.issue-number }},
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `Automated testing ${{ steps.tests.conclusion }}.
+
+            Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}. The first 100, and last 100 lines of the log are displayed in the Summary below.
+
+            <details><summary>Logs</summary>
+
+            \`\`\`
+            ${summary}
+            \`\`\`
+
+            </details>
+            `
+          })
