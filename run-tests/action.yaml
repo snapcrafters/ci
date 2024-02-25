@@ -87,7 +87,7 @@ runs:
             repo: context.repo.repo,
             body: `Automated testing ${{ steps.tests.conclusion }}.
 
-            Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Full logs are available at https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}. The first 100, and last 100 lines of the log are displayed in the Summary below.
 
             <details><summary>Logs</summary>
 
