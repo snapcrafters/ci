@@ -71,12 +71,12 @@ runs:
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
       run: |
-        # Remove the architecture definition from the snapcraft.yaml due to:
+        # Restrict arch definition to one only in snapcraft.yaml due to:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
-        yq -i 'del(.architectures)' "$yaml_path"
+        yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
 
-        cd "$project_root" || exit 
-        if ! snapcraft remote-build --launchpad-accept-public-upload --build-for="${arch}"; then
+        cd "$project_root" || exit
+        if ! snapcraft remote-build --launchpad-accept-public-upload; then
           cat "${name}_${arch}.txt"
         fi
 
