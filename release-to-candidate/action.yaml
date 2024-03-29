@@ -86,7 +86,7 @@ runs:
         fi
 
         # Check if build log is requested
-        if [[ "$show_build_log" -eq "true" ]]; then
+        if [[ "$show_build_log" == "true" ]]; then
             cat "${name}_${arch}.txt"
         fi
 
