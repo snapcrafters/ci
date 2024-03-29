@@ -69,6 +69,7 @@ runs:
       id: build
       shell: bash
       env:
+        SNAPCRAFT_REMOTE_BUILD_STRATEGY: "disable-fallback" 
         show_build_log: ${{ inputs.show-build-log }}
         arch: ${{ inputs.architecture }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
@@ -80,7 +81,7 @@ runs:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
         yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
 
-        cd "$project_root" || exit
+        cd "$project_root" && git init || exit
         if ! snapcraft remote-build --launchpad-accept-public-upload; then
           cat "${name}_${arch}.txt"
         fi
