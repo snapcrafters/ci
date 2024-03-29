@@ -6,6 +6,10 @@ branding:
   color: orange
 
 inputs:
+  show-build-log:
+    description: "Show the build log even if the build succeed"
+    default: 'false'
+    required: false
   architecture:
     description: "The architecture to build the snap for"
     default: amd64
@@ -65,6 +69,7 @@ runs:
       id: build
       shell: bash
       env:
+        show_build_log: ${{ inputs.show-build-log }}
         arch: ${{ inputs.architecture }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
@@ -80,7 +85,10 @@ runs:
           cat "${name}_${arch}.txt"
         fi
 
-        cat "${name}_${arch}.txt"
+        # Check if build log is requested
+        if [[ "$show_build_log" -eq "true" ]]; then
+            cat "${name}_${arch}.txt"
+        fi
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
