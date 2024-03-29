@@ -88,7 +88,10 @@ runs:
         fi
 
         # Write the manifest file which is used by later steps
-        echo "snap=${project_root}/${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        if  [[ -n "$project_root" ]]; then
+            echo "snap=${project_root}/${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        fi
         echo "name: ${name}" >> "manifest-${arch}.yaml"
         echo "architecture: ${arch}" >> "manifest-${arch}.yaml"
 
