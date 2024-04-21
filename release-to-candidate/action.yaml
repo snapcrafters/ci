@@ -6,10 +6,6 @@ branding:
   color: orange
 
 inputs:
-  show-build-log:
-    description: "Show the build log even if the build succeed"
-    default: "true"
-    required: false
   architecture:
     description: "The architecture to build the snap for"
     default: amd64
@@ -86,10 +82,7 @@ runs:
           cat "${name}_${arch}.txt"
         fi
 
-        # Check if build log is requested
-        if [[ "$show_build_log" == "true" ]]; then
-            cat "${name}_${arch}.txt"
-        fi
+        cat "${name}_${arch}.txt"
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
