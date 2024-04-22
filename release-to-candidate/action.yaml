@@ -65,6 +65,7 @@ runs:
       id: build
       shell: bash
       env:
+        SNAPCRAFT_REMOTE_BUILD_STRATEGY: "disable-fallback"
         arch: ${{ inputs.architecture }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
@@ -75,7 +76,7 @@ runs:
         # https://bugs.launchpad.net/snapcraft/+bug/1885150
         yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
 
-        cd "$project_root" || exit
+        cd "$project_root" && git init || exit
         if ! snapcraft remote-build --launchpad-accept-public-upload; then
           cat "${name}_${arch}.txt"
         fi
@@ -89,6 +90,9 @@ runs:
 
         # Write the manifest file which is used by later steps
         echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        if  [[ -n "$project_root" ]]; then
+            echo "snap=${project_root}/${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        fi
         echo "name: ${name}" >> "manifest-${arch}.yaml"
         echo "architecture: ${arch}" >> "manifest-${arch}.yaml"
 
