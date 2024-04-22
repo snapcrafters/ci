@@ -66,7 +66,6 @@ runs:
       shell: bash
       env:
         SNAPCRAFT_REMOTE_BUILD_STRATEGY: "disable-fallback"
-        show_build_log: ${{ inputs.show-build-log }}
         arch: ${{ inputs.architecture }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
