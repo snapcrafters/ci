@@ -17,6 +17,10 @@ inputs:
   launchpad-token:
     description: "A token with permissions to create remote builds on Launchpad"
     required: true
+  multi-snap:
+    description: "Whether the repo contains the source for multiple snaps"
+    required: false
+    default: "false"
   repo-token:
     required: true
     description: A token with privileges to create and push tags to the repository.
@@ -129,6 +133,7 @@ runs:
     - name: Create tag
       shell: bash
       env:
+        multi_snap: ${{ inputs.multi-snap }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
       run: |
@@ -136,7 +141,12 @@ runs:
         git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
 
         revision="${{ steps.publish.outputs.revision }}"
-        tag_name="${name}-${version}/rev${revision}/${{ inputs.architecture }}"
+
+        if [[ "${multi_snap}" == "true" ]]; then
+          tag_name="${name}-${version}/rev${revision}/${{ inputs.architecture }}"
+        else
+          tag_name="${version}/rev${revision}/${{ inputs.architecture }}"
+        fi
 
         git tag -a "$tag_name" -m "Revision ${revision}, released for ${{ inputs.architecture }}"
         git push origin "$tag_name"
