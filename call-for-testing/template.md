@@ -13,19 +13,7 @@ If configured, the snap will be installed in a VM, and any test results or scree
 
 ## How to test it manually
 
-1. Stop the application if it was already running
-1. Upgrade to this version by running
-
-   ```shell
-   snap refresh {{ env.snap_name }} --channel {{ env.channel }}
-   ```
-
-1. Start the app and test it out.
-1. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
-
-   ```shell
-   snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed
-   ```
+{{env.testing_instructions}}
 
 ## How to release it
 
