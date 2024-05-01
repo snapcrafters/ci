@@ -120,7 +120,6 @@ runs:
 
         # shellcheck disable=SC2068
         snapcraft remote-build ${snapcraft_args[@]} || true
-        ls -la
 
         # shellcheck disable=SC2086
         cat ${name}_${arch}*.txt || echo "Could not find build log"
