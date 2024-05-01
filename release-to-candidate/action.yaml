@@ -119,12 +119,10 @@ runs:
         pushd "$project_root" && git init || exit
 
         # shellcheck disable=SC2068
-        if ! snapcraft remote-build ${snapcraft_args[@]}; then
-          cat "${name}_${arch}.txt"
-        fi
+        snapcraft remote-build ${snapcraft_args[@]} || true
 
         # shellcheck disable=SC2086
-        cat ${name}_${arch}*.txt
+        cat ${name}_${arch}*.txt || echo "Could not find build log"
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
