@@ -75,10 +75,12 @@ runs:
 
     - name: Setup Launchpad credentials
       shell: bash
+      env:
+        SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
       run: |
         # For versions of snapcraft after 8.2.0, the path is different
         # shellcheck disable=SC2193
-        if [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" ]]; then
+        if [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
           mkdir -p ~/.local/share/snapcraft/provider/launchpad
           echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
         else
@@ -104,11 +106,12 @@ runs:
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
+        SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
       run: |
         snapcraft_args=("--launchpad-accept-public-upload")
 
         # shellcheck disable=SC2193
-        if [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" ]]; then
+        if [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
           # Restrict arch definition to one only in snapcraft.yaml due to:
           # https://bugs.launchpad.net/snapcraft/+bug/1885150
           yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
