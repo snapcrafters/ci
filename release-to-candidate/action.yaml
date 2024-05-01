@@ -48,14 +48,32 @@ runs:
       with:
         token: ${{ inputs.repo-token }}
 
+    - name: Setup semver tool
+      shell: bash
+      run: |
+        wget -q https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver
+        sudo mv semver /usr/bin/semver
+        chmod +x /usr/bin/semver
+
     - name: Setup snapcraft
       shell: bash
       run: |
         sudo snap install snapcraft --channel "${{inputs.snapcraft-channel}}" --classic
 
-        # Setup Launchpad credentials
-        mkdir -p ~/.local/share/snapcraft/provider/launchpad
-        echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
+        installed_version="$(snapcraft version | cut -d" " -f2)"
+
+        # Setup Launchpad credentials.
+        # For versions of snapcraft after 8.2.0, the path is different for the launchpad 
+        # credentials.
+        if [[ "$(semver compare "8.2.0" "$installed_version")" == "1" ]]; then
+          # If the installed version is *lower* than 8.2.0
+          mkdir -p ~/.local/share/snapcraft/provider/launchpad
+          echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
+        else
+          mkdir -p ~/.local/share/snapcraft
+          echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/launchpad-credentials
+        fi
+
         git config --global user.email "github-actions@github.com"
         git config --global user.name "Github Actions"
 
