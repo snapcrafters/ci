@@ -36,16 +36,22 @@ runs:
       env:
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
       run: |
-        # Get the list as a json array. E.g. ["amd64", "arm64"]
-        architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' "$yaml_path")"
-
-        # Get the list as a space-separated string. E.g. "amd64" "arm64"
-        architectures="$(yq -r -I=0 -o=csv '[.architectures[]]' "$yaml_path" | tr ',' ' ')"
-
-        # Handle the case where architectures is a list of objects
-        if echo "$architectures" | grep -q "build-on"; then
+        # core24 uses a different syntax for specifying platforms.
+        if [[ "$(yq -r '.base' "$yaml_path")" == "core24" ]]; then
+          architectures_list="$(yq -r -I=0 -o=json '[.platforms | to_entries | .[] | .key]' "$yaml_path")"
+          architectures="$(yq -r -I=0 -o=csv '[.platforms | to_entries | .[] | .key]' "$yaml_path" | tr ',' ' ')"
+        else
+          # Get the list as a json array. E.g. ["amd64", "arm64"]
+          architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' "$yaml_path")"
+          
+          # Get the list as a space-separated string. E.g. "amd64" "arm64"
+          architectures="$(yq -r -I=0 -o=csv '[.architectures[]]' "$yaml_path" | tr ',' ' ')"
+          
+          # Handle the case where architectures is a list of objects
+          if echo "$architectures" | grep -q "build-on"; then
             architectures_list="$(yq -r -I=0 -o=json '[.architectures[]."build-on"]' "$yaml_path")"
             architectures="$(yq -r -I=0 -o=csv '[.architectures[]."build-on"]' "$yaml_path" | tr ',' ' ')"
+          fi
         fi
 
         echo "architectures_list=$architectures_list" >> "$GITHUB_OUTPUT"
