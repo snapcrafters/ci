@@ -25,7 +25,7 @@ inputs:
     default: "latest/stable"
     required: false
   snapcraft-project-root:
-    description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from."
+    description: "The root of the snapcraft project, where the `snapcraft` command would usually be executed from"
     required: false
   snapcraft-channel:
     description: "The channel to install snapcraft from"
@@ -33,6 +33,23 @@ inputs:
     required: false
   store-token:
     description: "A token with permissions to upload to the specified channel"
+    required: false
+  testing-instructions:
+    description: "Custom instructions for testing the `candidate` snap"
+    default: |
+      1. Stop the application if it was already running
+      1. Upgrade to this version by running
+
+        ```shell
+        snap refresh {{ env.snap_name }} --channel {{ env.channel }}
+        ```
+
+      1. Start the app and test it out.
+      1. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
+
+        ```shell
+        snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed
+        ```
     required: false
 
 outputs:
@@ -126,5 +143,6 @@ runs:
         table: ${{ steps.build.outputs.table }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         promotion_channel: ${{ inputs.promotion-channel }}
+        testing_instructions: ${{ inputs.testing-instructions }}
       with:
         filename: ./template.md
