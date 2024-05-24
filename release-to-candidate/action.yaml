@@ -79,14 +79,9 @@ runs:
         SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
       run: |
         # For versions of snapcraft after 8.2.0, the path is different
-        # shellcheck disable=SC2193
-        if [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
-          mkdir -p ~/.local/share/snapcraft/provider/launchpad
-          echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
-        else
-          mkdir -p ~/.local/share/snapcraft
-          echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/launchpad-credentials
-        fi
+        mkdir -p ~/.local/share/snapcraft/provider/launchpad ~/.local/share/snapcraft
+        echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
+        echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/launchpad-credentials
 
         git config --global user.email "github-actions@github.com"
         git config --global user.name "Github Actions"
