@@ -6,6 +6,14 @@ branding:
   color: orange
 
 inputs:
+  bot-email:
+    description: "The email address of the bot account used to commit screenshots."
+    required: false
+    default: "snapforge.team@gmail.com"
+  bot-name:
+    description: "The name of the bot account used to commit screenshots."
+    required: false
+    default: "Snapcrafters Bot"
   branch:
     description: "The branch on which modifications to snapcraft.yaml should be made."
     default: "candidate"
@@ -60,8 +68,8 @@ runs:
         if [[ ! "$old_version" == "$new_version" ]]; then
             version=$new_version
         fi
-        git config --global user.name 'Snapcrafters Bot'
-        git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
+        git config --global user.name "${{ inputs.bot-name }}"
+        git config --global user.email "${{ inputs.bot-email }}"
         if [[ -n "${version:-}" ]]; then
             git commit -am "chore: bump ${snap_name} to version ${version}"
         else

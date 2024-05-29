@@ -6,6 +6,14 @@ branding:
   color: orange
 
 inputs:
+  bot-email:
+    description: "The email address of the bot account used to commit screenshots."
+    required: false
+    default: "snapforge.team@gmail.com"
+  bot-name:
+    description: "The name of the bot account used to commit screenshots."
+    required: false
+    default: "Snapcrafters Bot"
   issue-number:
     description: "The issue number to post the screenshots into"
     required: true
@@ -126,8 +134,8 @@ runs:
         cp -L "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
         cp -L "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
 
-        git config --global user.email "merlijn.sebrechts+snapcrafters-bot@gmail.com"
-        git config --global user.name "Snapcrafters Bot"
+        git config --global user.email "${{ inputs.bot-email }}"
+        git config --global user.name "${{ inputs.bot-name }}"
 
         git add -A .
         git commit -m "data: screenshots for snapcrafters/${snap_name}#${{ inputs.issue-number }}"
