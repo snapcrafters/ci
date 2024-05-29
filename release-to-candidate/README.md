@@ -27,8 +27,8 @@ jobs:
 | Key                      | Description                                                                               | Required | Default                    |
 | ------------------------ | ----------------------------------------------------------------------------------------- | :------: | :------------------------- |
 | `architecture`           | The architecture for which to build the snap.                                             |    N     | `amd64`                    |
-| `bot-email`              | The email address of the bot account to use to create and push tags to the repository.                          |    N     | `snapforge.team@gmail.com` |
-| `bot-name`               | The name of the bot account to use to create and push tags to the repository.                                  |    N     | `Snapcrafters Bot`         |
+| `bot-email`              | The email address of the bot account to use to create and push tags to the repository.    |    N     | `snapforge.team@gmail.com` |
+| `bot-name`               | The name of the bot account to use to create and push tags to the repository.             |    N     | `Snapcrafters Bot`         |
 | `channel`                | The channel to release the snap to.                                                       |    N     | `latest/candidate`         |
 | `launchpad-token`        | A token with permissions to create Launchpad remote builds.                               |    Y     |                            |
 | `multi-snap`             | Whether the repo contains the source for multiple snaps.                                  |    N     | `false`                    |
