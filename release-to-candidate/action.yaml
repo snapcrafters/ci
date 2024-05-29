@@ -10,6 +10,14 @@ inputs:
     description: "The architecture to build the snap for"
     default: amd64
     required: false
+  bot-email:
+    description: "The email address of the bot account used to commit screenshots."
+    required: false
+    default: "snapforge.team@gmail.com"
+  bot-name:
+    description: "The name of the bot account used to commit screenshots."
+    required: false
+    default: "Snapcrafters Bot"
   channel:
     description: "The channel to publish the snap to"
     default: "latest/candidate"
@@ -70,8 +78,8 @@ runs:
           echo "new-remote-build=true" >> "$GITHUB_OUTPUT"
         fi
 
-        git config --global user.email "github-actions@github.com"
-        git config --global user.name "Github Actions"
+        git config --global user.email "${{ inputs.bot-email }}"
+        git config --global user.name "${{ inputs.bot-name }}"
 
     - name: Setup Launchpad credentials
       shell: bash
@@ -83,8 +91,8 @@ runs:
         echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/provider/launchpad/credentials
         echo "${{ inputs.launchpad-token }}" > ~/.local/share/snapcraft/launchpad-credentials
 
-        git config --global user.email "github-actions@github.com"
-        git config --global user.name "Github Actions"
+        git config --global user.email "${{ inputs.bot-email }}"
+        git config --global user.name "${{ inputs.bot-name }}"
 
     - name: Find and parse snapcraft.yaml
       id: snapcraft-yaml
@@ -176,8 +184,8 @@ runs:
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
       run: |
-        git config --global user.name 'Snapcrafters Bot'
-        git config --global user.email 'merlijn.sebrechts+snapcrafters-bot@gmail.com'
+        git config --global user.name "${{ inputs.bot-name }}"
+        git config --global user.email "${{ inputs.bot-email }}"
 
         revision="${{ steps.publish.outputs.revision }}"
 
