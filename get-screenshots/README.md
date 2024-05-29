@@ -29,8 +29,8 @@ jobs:
 
 | Key                      | Description                                                                                                                       | Required | Default                       |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | :------: | :---------------------------- |
-| `bot-email`              | The email address of the bot account used to commit screenshots.                                                                  |    N     | `snapforge.team@gmail.com`    |
-| `bot-name`               | The name of the bot account used to commit screenshots..                                                                          |    N     | `Snapcrafters Bot`            |
+| `bot-email`              | The email address of the bot account to use to commit screenshots.                                                                |    N     | `snapforge.team@gmail.com`    |
+| `bot-name`               | The name of the bot account to use to commit screenshots.                                                                         |    N     | `Snapcrafters Bot`            |
 | `issue-number`           | The issue number to post the screenshots to.                                                                                      |    Y     |                               |
 | `ci-repo`                | The repo to fetch tools/templates from. Only for debugging.                                                                       |    N     | `snapcrafters/ci`             |
 | `channel`                | The channel to create the call for testing for.                                                                                   |    N     | `latest/candidate`            |
