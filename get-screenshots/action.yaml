@@ -138,7 +138,7 @@ runs:
         git config --global user.name "${{ inputs.bot-name }}"
 
         git add -A .
-        git commit -m "data: screenshots for ${github.repository_owner}/${snap_name}#${{ inputs.issue-number }}"
+        git commit -m "data: screenshots for ${{github.repository_owner}}/${snap_name}#${{ inputs.issue-number }}"
         git push origin main
 
         echo "screen=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-screen.png" >> "$GITHUB_OUTPUT"
