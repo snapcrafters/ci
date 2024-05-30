@@ -13,7 +13,7 @@ If configured, the snap will be installed in a VM, and any test results or scree
 
 ## How to test it manually
 
-{{env.testing_instructions}}
+TESTING_INSTRUCTIONS
 
 ## How to release it
 
