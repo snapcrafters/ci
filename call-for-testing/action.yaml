@@ -38,14 +38,14 @@ inputs:
     description: "Custom instructions for testing the `candidate` snap"
     default: |
       1. Stop the application if it was already running
-      1. Upgrade to this version by running
+      2. Upgrade to this version by running
 
         ```shell
         snap refresh {{ env.snap_name }} --channel {{ env.channel }}
         ```
 
-      1. Start the app and test it out.
-      1. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
+      3. Start the app and test it out.
+      4. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
 
         ```shell
         snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed
@@ -127,10 +127,14 @@ runs:
         echo "revisions=${joined%,}" >> "$GITHUB_OUTPUT"
         echo "table=${table}" >> "$GITHUB_OUTPUT"
 
-    - name: Fetch the call for testing template
+    - name: Prepare the call for testing template
       shell: bash
       run: |
-        wget -qO template.md "https://raw.githubusercontent.com/${{ inputs.ci-repo }}/main/call-for-testing/template.md"
+        # Fetch the template from the repo
+        wget -qO template-raw.md "https://raw.githubusercontent.com/${{ inputs.ci-repo }}/main/call-for-testing/template.md"
+
+        # Substitute in the testing instructions
+        awk -v r="${{ inputs.testing-instructions }}" '{gsub(/TESTING_INSTRUCTIONS/,r)}1' template-raw.md > template.md
 
     - name: Create call for testing issue
       uses: JasonEtco/create-an-issue@v2
@@ -143,6 +147,5 @@ runs:
         table: ${{ steps.build.outputs.table }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         promotion_channel: ${{ inputs.promotion-channel }}
-        testing_instructions: ${{ inputs.testing-instructions }}
       with:
         filename: ./template.md
