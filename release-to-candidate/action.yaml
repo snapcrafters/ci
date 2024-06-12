@@ -117,7 +117,7 @@ runs:
         if [[ "$(yq -r '.base' "$yaml_path")" == "core24" ]]; then
           # `core24` uses platforms syntax rather than `architectures`:
           # https://snapcraft.io/docs/architectures
-          yq -i '.platforms |= [{env(arch)}:]' "$yaml_path"
+          SNAPCRAFT_REMOTE_BUILD_STRATEGY=disable-fallback
           snapcraft_args+=("--platform $arch")
         elif [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
           # Restrict arch definition to one only in snapcraft.yaml due to:
