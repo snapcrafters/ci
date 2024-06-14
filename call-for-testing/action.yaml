@@ -40,16 +40,16 @@ inputs:
       1. Stop the application if it was already running
       2. Upgrade to this version by running
 
-        ```shell
+        <code>
         snap refresh {{ env.snap_name }} --channel {{ env.channel }}
-        ```
+        </code>
 
       3. Start the app and test it out.
       4. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
 
-        ```shell
+        <code>
         snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed
-        ```
+        </code>
     required: false
 
 outputs:
@@ -129,12 +129,14 @@ runs:
 
     - name: Prepare the call for testing template
       shell: bash
+      env:
+        testing_instructions: ${{ inputs.testing-instructions }}
       run: |
         # Fetch the template from the repo
         wget -qO template-raw.md "https://raw.githubusercontent.com/${{ inputs.ci-repo }}/main/call-for-testing/template.md"
 
         # Substitute in the testing instructions
-        awk -v r="${{ inputs.testing-instructions }}" '{gsub(/TESTING_INSTRUCTIONS/,r)}1' template-raw.md > template.md
+        awk -v r="${testing_instructions}" '{gsub(/TESTING_INSTRUCTIONS/,r)}1' template-raw.md > template.md
 
     - name: Create call for testing issue
       uses: JasonEtco/create-an-issue@v2
