@@ -40,16 +40,12 @@ inputs:
       1. Stop the application if it was already running
       2. Upgrade to this version by running
 
-        <code>
-        snap refresh {{ env.snap_name }} --channel {{ env.channel }}
-        </code>
+      <code>snap refresh {{ env.snap_name }} --channel {{ env.channel }}</code>
 
       3. Start the app and test it out.
       4. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
 
-        <code>
-        snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed
-        </code>
+      <code>snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed</code>
     required: false
 
 outputs:
