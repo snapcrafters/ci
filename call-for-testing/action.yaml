@@ -45,7 +45,7 @@ inputs:
       3. Start the app and test it out.
       4. Finally, add a comment below explaining whether this app is working, and **include the output of the following command**.
 
-      <pre><code>snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed</code><pre>
+      <pre><code>snap version; lscpu | grep Architecture; snap info {{ env.snap_name }} | grep installed</code></pre>
     required: false
 
 outputs:
