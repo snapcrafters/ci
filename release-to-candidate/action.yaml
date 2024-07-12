@@ -117,6 +117,8 @@ runs:
         if [[ "$(yq -r '.base' "$yaml_path")" == "core24" ]]; then
           # `core24` uses platforms syntax rather than `architectures`:
           # https://snapcraft.io/docs/architectures
+          SNAPCRAFT_REMOTE_BUILD_STRATEGY=disable-fallback
+          yq -i '.platforms |= {env(arch): {"build-on": env(arch)}}' "$yaml_path"
           snapcraft_args+=("--platform $arch")
         elif [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
           # Restrict arch definition to one only in snapcraft.yaml due to:
@@ -132,7 +134,7 @@ runs:
         snapcraft remote-build ${snapcraft_args[@]} || true
 
         # shellcheck disable=SC2086
-        cat ${name}_${arch}*.txt || echo "Could not find build log"
+        cat snapcraft-${name}*${arch}*.txt || echo "Could not find build log"
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
