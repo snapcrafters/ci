@@ -133,8 +133,13 @@ runs:
         # shellcheck disable=SC2068
         snapcraft remote-build ${snapcraft_args[@]} || true
 
-        # shellcheck disable=SC2086
-        cat snapcraft-${name}*${arch}*.txt || echo "Could not find build log"
+        if [[ "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
+            # shellcheck disable=SC2086
+            cat ${name}_${arch}.txt || echo "Could not find build log"
+        else
+            # shellcheck disable=SC2086
+            cat snapcraft-${name}*${arch}*.txt || echo "Could not find build log"
+        fi
 
         if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
             echo "Could not find ${name}_${version}_${arch}.snap"
