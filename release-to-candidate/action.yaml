@@ -141,17 +141,27 @@ runs:
             cat snapcraft-${name}*${arch}*.txt || echo "Could not find build log"
         fi
 
-        if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
-            echo "Could not find ${name}_${version}_${arch}.snap"
+        snap_file=
+        if [[ "${version}" != "null" ]]; then
+            snap_file="${name}_${version}_${arch}.snap"
+        else
+            # snapcraft.yaml doesn't specify the _version_ property,
+            # matching it via globbing
+            snap_files=("${name}_"*"_${arch}.snap")
+            snap_file="${snap_files[0]}"
+        fi
+
+        if [[ ! -e "${snap_file}" ]]; then
+            echo "Could not find ${snap_file}"
             exit 1
         fi
 
         popd || exit
 
         # Write the manifest file which is used by later steps
-        echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        echo "snap=${snap_file}" >> "$GITHUB_OUTPUT"
         if  [[ -n "$project_root" ]]; then
-            echo "snap=${project_root}/${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+            echo "snap=${project_root}/${snap_file}" >> "$GITHUB_OUTPUT"
         fi
         echo "name: ${name}" >> "manifest-${{ inputs.architecture }}.yaml"
         echo "architecture: ${arch}" >> "manifest-${{ inputs.architecture }}.yaml"
