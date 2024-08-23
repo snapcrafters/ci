@@ -149,6 +149,8 @@ runs:
             # matching it via globbing
             snaps=("${name}_"*"_${arch}.snap")
             snap="${snaps[0]}"
+            snap_version_raw="${snap%_${arch}.snap}"
+            snap_version="${snap_version_raw#${name}_}"
         fi
 
         if [[ ! -e "${snap}" ]]; then
@@ -162,6 +164,9 @@ runs:
         echo "snap=${snap}" >> "$GITHUB_OUTPUT"
         if  [[ -n "$project_root" ]]; then
             echo "snap=${project_root}/${snap}" >> "$GITHUB_OUTPUT"
+        fi
+        if  [[ "$version" == null ]]; then
+            echo "version=${snap_version}" >> "$GITHUB_OUTPUT"
         fi
         echo "name: ${name}" >> "manifest-${{ inputs.architecture }}.yaml"
         echo "architecture: ${arch}" >> "manifest-${{ inputs.architecture }}.yaml"
@@ -200,11 +205,16 @@ runs:
         multi_snap: ${{ inputs.multi-snap }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
+        build_version: ${{ steps.build.outputs.version }}
       run: |
         git config --global user.name "${{ inputs.bot-name }}"
         git config --global user.email "${{ inputs.bot-email }}"
 
         revision="${{ steps.publish.outputs.revision }}"
+
+        if [[ "${version}" == null ]]; then
+            version="${build_version}"
+        fi
 
         if [[ "${multi_snap}" == "true" ]]; then
           tag_name="${name}-${version}/rev${revision}/${{ inputs.architecture }}"
