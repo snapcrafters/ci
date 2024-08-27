@@ -149,8 +149,8 @@ runs:
             # matching it via globbing
             snaps=("${name}_"*"_${arch}.snap")
             snap="${snaps[0]}"
-            snap_version_raw="${snap%_${arch}.snap}"
-            snap_version="${snap_version_raw#${name}_}"
+            snap_version_raw="${snap%"_${arch}.snap"}"
+            snap_version="${snap_version_raw#"${name}_"}"
         fi
 
         if [[ ! -e "${snap}" ]]; then
