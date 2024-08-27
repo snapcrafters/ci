@@ -141,17 +141,32 @@ runs:
             cat snapcraft-${name}*${arch}*.txt || echo "Could not find build log"
         fi
 
-        if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
-            echo "Could not find ${name}_${version}_${arch}.snap"
+        snap=
+        if [[ "${version}" != "null" ]]; then
+            snap="${name}_${version}_${arch}.snap"
+        else
+            # snapcraft.yaml doesn't specify the _version_ property,
+            # matching it via globbing
+            snaps=("${name}_"*"_${arch}.snap")
+            snap="${snaps[0]}"
+            snap_version_raw="${snap%"_${arch}.snap"}"
+            snap_version="${snap_version_raw#"${name}_"}"
+        fi
+
+        if [[ ! -e "${snap}" ]]; then
+            echo "Could not find ${snap}"
             exit 1
         fi
 
         popd || exit
 
         # Write the manifest file which is used by later steps
-        echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        echo "snap=${snap}" >> "$GITHUB_OUTPUT"
         if  [[ -n "$project_root" ]]; then
-            echo "snap=${project_root}/${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+            echo "snap=${project_root}/${snap}" >> "$GITHUB_OUTPUT"
+        fi
+        if  [[ "$version" == null ]]; then
+            echo "version=${snap_version}" >> "$GITHUB_OUTPUT"
         fi
         echo "name: ${name}" >> "manifest-${{ inputs.architecture }}.yaml"
         echo "architecture: ${arch}" >> "manifest-${{ inputs.architecture }}.yaml"
@@ -190,11 +205,16 @@ runs:
         multi_snap: ${{ inputs.multi-snap }}
         name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
+        build_version: ${{ steps.build.outputs.version }}
       run: |
         git config --global user.name "${{ inputs.bot-name }}"
         git config --global user.email "${{ inputs.bot-email }}"
 
         revision="${{ steps.publish.outputs.revision }}"
+
+        if [[ "${version}" == null ]]; then
+            version="${build_version}"
+        fi
 
         if [[ "${multi_snap}" == "true" ]]; then
           tag_name="${name}-${version}/rev${revision}/${{ inputs.architecture }}"
