@@ -119,7 +119,6 @@ runs:
           # https://snapcraft.io/docs/architectures
           SNAPCRAFT_REMOTE_BUILD_STRATEGY=disable-fallback
           yq -i '.platforms |= {env(arch): {"build-on": env(arch)}}' "$yaml_path"
-          snapcraft_args+=("--platform $arch")
         elif [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
           # Restrict arch definition to one only in snapcraft.yaml due to:
           # https://bugs.launchpad.net/snapcraft/+bug/1885150
