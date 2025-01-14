@@ -1,5 +1,5 @@
 ---
-title: Call for testing `{{ env.snap_name }}`
+title: Call for testing `{{ env.snap_name }}` on channel `{{ env.channel }}`
 labels: testing
 ---
 
