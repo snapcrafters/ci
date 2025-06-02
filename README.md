@@ -14,6 +14,7 @@ The actions in this repo are all used during the build, test and release of our 
 - [snapcrafters/ci/release-to-candidate](release-to-candidate/README.md)
 - [snapcrafters/ci/sync-version](sync-version/README.md)
 - [snapcrafters/ci/test-snap-build](test-snap-build/README.md)
+- [snapcrafters/ci/update-snap](update-snap/README.md)
 
 ### Usage
 
