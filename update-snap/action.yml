@@ -57,6 +57,7 @@ runs:
         sudo apt update
         sudo apt install snapd
         sudo snap install snapcraft
+      shell: bash
 
 # Step to run the script that will generate a new output_file with an updated tag, if one is available. If there was a change, then we move this to the snapcraft.yaml and note that there was a change. 
     - name: run updatesnapyaml
@@ -113,6 +114,7 @@ runs:
       run: |
         set -x
         snapcraft -v
+        jkldjañfj ensure to fail
       shell: bash
 
 # If there was a change detected, then let's commit the changes
