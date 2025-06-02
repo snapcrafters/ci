@@ -50,11 +50,19 @@ runs:
         ref: stable
         path: desktop-snaps
 
+    - name: install dependencies
+      id: dependencies
+      run: |
+        set -x
+        sudo apt update
+        sudo apt install snapd
+        sudo snap install snapcraft
+
 # Step to run the script that will generate a new output_file with an updated tag, if one is available. If there was a change, then we move this to the snapcraft.yaml and note that there was a change. 
     - name: run updatesnapyaml
       id: updatesnapyaml
       run: |
-        ls
+        set -x
         ./desktop-snaps/updatesnap/updatesnapyaml.py \
           --github-user $GITHUB_USER \
           --github-token $GITHUB_TOKEN \
