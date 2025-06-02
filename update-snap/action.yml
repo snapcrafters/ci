@@ -54,7 +54,8 @@ runs:
     - name: run updatesnapyaml
       id: updatesnapyaml
       run: |
-        ./updatesnapyaml.py \
+        ls
+        ./update-snap/updatesnapyaml.py \
           --github-user $GITHUB_USER \
           --github-token $GITHUB_TOKEN \
           ${VERSION_SCHEMA:+--version-schema $VERSION_SCHEMA} \
