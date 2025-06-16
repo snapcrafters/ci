@@ -1,8 +1,9 @@
 # updatesnap
 
-A simple script that checks a snapcraft yaml file and shows possible new versions for each part
+A simple script that checks a snapcraft yaml file and shows possible new versions for each part.
+It can be used either locally, and as a CI part.
 
-## Installing
+## Local install
 
 Just run:
 
@@ -10,7 +11,7 @@ Just run:
 
 will install it at /usr/local/bin
 
-## Using it
+## Using it locally
 
 Just run *updatesnap.py [-s] [-r] [--github-user=...] [--github-token=...] /path/to/snapcraft.yaml*.
 Optionally, you can add a Part name, and updatesnap will check only that part, instead of all. Also,
@@ -163,4 +164,6 @@ The available extra tokens are:
 ## TODO
 
 * Migrate to specific github and gitlab modules instead of using custom code
+* Isolate code in python modules and create specific command line tools that can be
+  easily integrated with the rest of the CI workflow.
 
