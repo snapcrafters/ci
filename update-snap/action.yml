@@ -2,8 +2,11 @@ name: 'Update snap tag'
 description: 'Update the snapcraft.yaml for a given snap with the latest upstream tag'
 
 # Inputs required by the action to perform correctly.
-# token: This is the GITHUB_TOKEN that exists for the other repo whose workflow uses this action. Without the other repo's token, this action does not have permission to perform tasks on the other repo, like pushing changes or opening a PR
-# repo: This is the repo who is using this action. This repo contains the snapcraft.yaml that this action will be working on.
+# token: This is the GITHUB_TOKEN that exists for the other repo whose workflow
+#        uses this action. Without the other repo's token, this action does not have
+#        permission to perform tasks on the other repo, like pushing changes or opening a PR
+# repo: This is the repo who is using this action. This repo contains the snapcraft.yaml
+#       that this action will be working on.
 inputs:
   token:
     description: 'A Github PAT'
@@ -31,7 +34,8 @@ outputs:
     description: "Updated snapcraft.yaml"
     value: ${{ steps.updatesnapyaml.outputs.new-snapcraft-yaml }}
 
-# Global env var that can keep track of if there was a change or not. This determines if there are commits to be pushed.
+# Global env var that can keep track of if there was a change or not. This
+# determines if there are commits to be pushed.
 env:
   IS_CHANGE: false
   IS_VERSION_CHANGE: false
@@ -42,20 +46,23 @@ runs:
   using: "composite"
 
   steps:
-# Step to checkout the desktop-snaps repo so that we can run updatesnapyaml.py. We need to define a folder called desktop-snaps to avoid the checkout overwriting the other repo's checkout which comes first in the other repo's workflow
+# Step to checkout the desktop-snaps repo so that we can run updatesnapyaml.py.
+# We need to define a folder called desktop-snaps to avoid the checkout overwriting the other repo's checkout which comes first in the other repo's workflow
     - name: checkout desktop-snaps repo
       uses: actions/checkout@v4
       with:
-        repository: 'ubuntu/desktop-snaps'
+        repository: 'ubuntu/ci'
         ref: stable
         path: desktop-snaps
 
-# Step to run the script that will generate a new output_file with an updated tag, if one is available. If there was a change, then we move this to the snapcraft.yaml and note that there was a change. 
+# Step to run the script that will generate a new output_file with an updated tag,
+# if one is available. If there was a change, then we move this to the snapcraft.yaml
+# and note that there was a change.
     - name: run updatesnapyaml
       id: updatesnapyaml
       run: |
         set -x
-        ./desktop-snaps/updatesnap/updatesnapyaml.py \
+        ./desktop-snaps/update-snap/updatesnap/updatesnapyaml.py \
           --github-user $GITHUB_USER \
           --github-token $GITHUB_TOKEN \
           ${VERSION_SCHEMA:+--version-schema $VERSION_SCHEMA} \
@@ -64,7 +71,8 @@ runs:
           ${README_PATH:+--readme-path $README_PATH} \
           https://github.com/${{ github.repository }}
 
-        # Make sure to put the updated snapcraft.yaml file in the right location if it lives in a snap directory
+        # Make sure to put the updated snapcraft.yaml file in the right location
+        # if it lives in a snap directory
         if [ -f version_file ]; then
           echo "IS_VERSION_CHANGE=true" >> $GITHUB_ENV
           rm version_file
@@ -93,13 +101,15 @@ runs:
         README_PATH: ${{ inputs.readme-path }}
       shell: bash
 
-# Step to remove the desktop-snaps folder so that when we commit changes in another repo, the desktop-snaps folder is not committed there.
+# Step to remove the desktop-snaps folder so that when we commit changes
+# in another repo, the desktop-snaps folder is not committed there.
     - name: Cleanup
       run: |
         rm -rf desktop-snaps
       shell: bash
 
-# If there was a change detected, try to rebuild the snap to ensure that everything works as expected
+# If there was a change detected, try to rebuild the snap to ensure that
+# everything works as expected
     - name: Rebuild the snap
       if: ${{ env.IS_CHANGE || env.IS_VERSION_CHANGE || env.IS_README_CHANGE }}
       uses: snapcore/action-build@v1
