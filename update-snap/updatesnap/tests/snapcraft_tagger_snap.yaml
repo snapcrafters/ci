@@ -1,0 +1,94 @@
+name: tagger # you probably want to 'snapcraft register <name>'
+base: core22 # the base snap is the execution environment for this snap
+adopt-info: tagger
+source-code: https://github.com/NickvisionApps/Tagger
+issues: https://github.com/NickvisionApps/Tagger/issues
+grade: stable # must be 'stable' to release into candidate/stable channels
+confinement: strict # use 'strict' once you have the right plugs and slots
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+
+parts:
+  chromaprint:
+    plugin: cmake
+    source: https://github.com/acoustid/chromaprint.git
+    source-tag: v1.5.1
+    source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     ignore: true
+    build-snaps:
+      - ffmpeg-2204-sdk
+    build-environment:
+      - PKG_CONFIG_PATH: /snap/ffmpeg-2204-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET/pkgconfig:$PKG_CONFIG_PATH
+      - PATH: /snap/ffmpeg-2204-sdk/current/usr/bin:$PATH
+      - LD_LIBRARY_PATH: /snap/ffmpeg-2204-sdk/current/usr/lib/$CRAFT_ARCH_TRIPLET:$LD_LIBRARY_PATH
+    override-pull: |
+      craftctl default
+      patch -p1 < $CRAFT_PROJECT_DIR/snap/patches/01_libchromaprint_ffmpeg.patch
+      patch -p1 < $CRAFT_PROJECT_DIR/snap/patches/02_libchromaprint_ffmpeg.patch
+      patch -p1 < $CRAFT_PROJECT_DIR/snap/patches/03_libchromaprint_ffmpeg.patch
+    cmake-parameters:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_TOOLS=ON
+      - -DBUILD_TESTS=OFF
+      - -DCMAKE_INSTALL_PREFIX=/usr
+    prime:
+      - -usr/lib/pkgconfig
+      - -usr/include
+
+  tagger:
+    after: [ chromaprint ]
+    # See 'snapcraft plugins'
+    plugin: nil
+    source: https://github.com/NickvisionApps/Tagger.git
+    source-tag: '2023.7.0'
+    source-depth: 1
+    build-packages:
+      - blueprint-compiler
+      - wget
+    override-pull: |
+      craftctl default
+      wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+      chmod +x ./dotnet-install.sh
+      ./dotnet-install.sh --channel 7.0
+      patch -p1 < $CRAFT_PROJECT_DIR/snap/patches/tagger.patch
+    override-build: |
+      export DOTNET_ROOT=$HOME/.dotnet
+      export PATH=$PATH:$HOME/.dotnet:$HOME/.dotnet/tools:$HOME/.cargo/bin
+      cd $CRAFT_PART_SRC
+      dotnet tool restore
+      dotnet cake --target=Publish --prefix=/snap/tagger/current/usr --ui=gnome --self-contained
+      dotnet cake --target=Install --destdir=$CRAFT_PART_INSTALL
+      mkdir -p $CRAFT_PART_INSTALL/meta/gui
+      cp -r $CRAFT_PART_INSTALL/snap/tagger/current/usr/share/icons $CRAFT_PART_INSTALL/meta/gui/
+      for i in `find $CRAFT_PART_INSTALL/meta/gui/icons -name "*.svg" -o -name "*.png"`; do
+        mv $i "`dirname $i`/snap.$CRAFT_PROJECT_NAME.`basename $i`"
+      done
+    organize:
+      snap/tagger/current: .
+    parse-info: [ usr/share/metainfo/org.nickvision.tagger.metainfo.xml ]
+
+slots:
+  tagger:
+    interface: dbus
+    bus: session
+    name: org.nickvision.tagger
+plugs:
+  ffmpeg-2204:
+    interface: content
+    target: ffmpeg-platform
+    default-provider: ffmpeg-2204
+
+apps:
+  tagger:
+    command: usr/bin/org.nickvision.tagger
+    extensions: [gnome]
+    common-id: org.nickvision.tagger
+    environment:
+      PATH: $SNAP/ffmpeg-platform/usr/bin:$PATH
+      LD_LIBRARY_PATH: $SNAP/ffmpeg-platform/usr/lib/$CRAFT_ARCH_TRIPLET:$LD_LIBRARY_PATH
+    plugs:
+      - home
