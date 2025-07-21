@@ -169,8 +169,21 @@ runs:
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
         SNAP_FILE: ${{ steps.build.outputs.snap }}
+        components: ${{ steps.snapcraft-yaml.outputs.components }}
+        name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
       run: |
-        snapcraft_out="$(snapcraft push "$SNAP_FILE" --release="${{ inputs.channel }}")"
+        component_flags=""
+        for comp in ${components//,/ }
+        do
+            comp_name=$(echo "$comp" | cut -f1 -d"|")
+            comp_version=$(echo "$comp" | cut -f2 -d"|")
+            if [[ "${comp_version}" == "null" ]]; then
+                component_flags="${component_flags} --component ${comp_name}=${name}+${comp_name}.comp"
+            else
+                component_flags="${component_flags} --component ${comp_name}=${name}+${comp_name}_${comp_version}.comp"
+            fi
+        done
+        snapcraft_out="$(snapcraft upload "$SNAP_FILE" ${component_flags} --release="${{ inputs.channel }}")"
         revision="$(echo "$snapcraft_out" | grep -Po "Revision \K[^ ]+")"
         echo "revision=${revision}" >> "$GITHUB_OUTPUT"
         echo "revision: ${revision}" >> "manifest-${{ inputs.architecture }}.yaml"

@@ -14,6 +14,9 @@ outputs:
   classic:
     description: "Whether to snap is strictly confined"
     value: ${{ steps.parse.outputs.classic }}
+  components:
+    description: "Comma-separated list of snap components and their versions (null if unversioned)"
+    value: ${{ steps.parse.outputs.components }}
   plugs-file:
     description: "The location of a plugs declaration file to be used during review, if one was found"
     value: ${{ steps.parse.outputs.plugs-file }}
@@ -91,3 +94,4 @@ runs:
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
         echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
         echo "version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        echo "components=$(yq -r '.components as $in | $in | keys | map("\(.)|\($in[.].version)") | join(",")' "$yaml_path")" >> "$GITHUB_OUTPUT"
