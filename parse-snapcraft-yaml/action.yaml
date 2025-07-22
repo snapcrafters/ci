@@ -94,4 +94,5 @@ runs:
         echo "yaml-path=${yaml_path}" >> "$GITHUB_OUTPUT"
         echo "snap-name=$(yq -r '.name' "$yaml_path")" >> "$GITHUB_OUTPUT"
         echo "version=$(yq -r '.version' "$yaml_path")" >> "$GITHUB_OUTPUT"
+        # shellcheck disable=SC2016
         echo "components=$(yq -r '.components as $in | $in | keys | map("\(.)|\($in[.].version)") | join(",")' "$yaml_path")" >> "$GITHUB_OUTPUT"
