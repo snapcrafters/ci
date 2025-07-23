@@ -175,12 +175,13 @@ runs:
         component_flags=()
         for comp in ${components//,/ }
         do
-            comp_name=$(echo "$comp" | cut -f1 -d"|")
-            comp_version=$(echo "$comp" | cut -f2 -d"|")
+            comp_name="$(echo "$comp" | cut -f1 -d"|")"
+            comp_version="$(echo "$comp" | cut -f2 -d"|")"
+            component_flags+=("--component")
             if [[ "${comp_version}" == "null" ]]; then
-                component_flags+=("--component" "${comp_name}=${name}+${comp_name}.comp")
+                component_flags+=("${comp_name}=${name}+${comp_name}.comp")
             else
-                component_flags+=("--component" "${comp_name}=${name}+${comp_name}_${comp_version}.comp")
+                component_flags+=("${comp_name}=${name}+${comp_name}_${comp_version}.comp")
             fi
         done
         snapcraft_out="$(snapcraft upload "$SNAP_FILE" "${component_flags[@]}" --release="${{ inputs.channel }}")"
