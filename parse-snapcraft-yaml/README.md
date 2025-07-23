@@ -43,6 +43,7 @@ jobs:
 | Key            | Description                                                                                      | Example                    |
 | -------------- | ------------------------------------------------------------------------------------------------ | -------------------------- |
 | `classic`      | Whether to snap is strictly confined                                                             | `false`                    |
+| `components`   | Comma-separated list of snap components and their versions (null if unversioned)                 | `comp-A\|1.0,comp-X\|null` |
 | `plugs-file`   | The location of a plugs declaration file to be used during review, if one was found              | `./plugs-declaration.json` |
 | `project-root` | The root of the snapcraft project, where the `snapcraft` command would usually be executed from. | `./ffmpeg-2204-sdk`        |
 | `slots-file`   | The location of a slots declaration file to be used during review, if one was found              | `./slots-declaration.json` |
