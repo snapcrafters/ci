@@ -109,7 +109,7 @@ runs:
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
-        SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
+        # SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
       run: |
         snapcraft_args=("--launchpad-accept-public-upload")
 
