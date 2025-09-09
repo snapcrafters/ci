@@ -46,8 +46,8 @@ runs:
         snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
       run: |
         # If we got a manifest file then parse the revision from it
-        if ls manifest-amd64.yaml &>/dev/null; then
-          arch="$(dpkg --print-architecture)"
+        arch="$(dpkg --print-architecture)"
+        if ls "manifest-${arch}.yaml" &>/dev/null; then
           rev="$(yq -r '.revision' "manifest-${arch}.yaml")"
           echo "Installing snap revision '${rev}' from build manifest"
           sudo snap install "${snap_name}" --revision "${rev}"
