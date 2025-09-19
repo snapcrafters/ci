@@ -69,22 +69,11 @@ runs:
       shell: bash
       run: |
         sudo snap install snapcraft --channel "${{inputs.snapcraft-channel}}" --classic
-
-        installed_version="$(snapcraft version | cut -d" " -f2)"
-
-        if [[ "$(semver compare "8.2.0" "$installed_version")" == "1" ]]; then
-          echo "new-remote-build=false" >> "$GITHUB_OUTPUT"
-        else
-          echo "new-remote-build=true" >> "$GITHUB_OUTPUT"
-        fi
-
         git config --global user.email "${{ inputs.bot-email }}"
         git config --global user.name "${{ inputs.bot-name }}"
 
     - name: Setup Launchpad credentials
       shell: bash
-      env:
-        SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
       run: |
         # For versions of snapcraft after 8.2.0, the path is different
         mkdir -p ~/.local/share/snapcraft/provider/launchpad ~/.local/share/snapcraft
@@ -109,48 +98,35 @@ runs:
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
-        # SNAPCRAFT_REMOTE_BUILD_STRATEGY: force-fallback
       run: |
-        snapcraft_args=("--launchpad-accept-public-upload")
-
-        # shellcheck disable=SC2193
-        if [[ "$(yq -r '.base' "$yaml_path")" == "core24" ]]; then
-          # `core24` uses platforms syntax rather than `architectures`:
-          # https://snapcraft.io/docs/architectures
-          SNAPCRAFT_REMOTE_BUILD_STRATEGY=disable-fallback
-          yq -i '.platforms |= {env(arch): {"build-on": env(arch)}}' "$yaml_path"
-        elif [[ "${{ steps.setup.outputs.new-remote-build }}" == "false" || "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
-          # Restrict arch definition to one only in snapcraft.yaml due to:
-          # https://bugs.launchpad.net/snapcraft/+bug/1885150
-          yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
-        else
-          snapcraft_args+=("--build-for $arch")
-        fi
-
         pushd "$project_root" && git init || exit
 
-        # shellcheck disable=SC2068
-        snapcraft remote-build ${snapcraft_args[@]} || true
+        # Dispatch the remote build.
+        snapcraft remote-build --launchpad-accept-public-upload --build-for "$arch" || true
 
-        if [[ "$SNAPCRAFT_REMOTE_BUILD_STRATEGY" == "force-fallback" ]]; then
-            # shellcheck disable=SC2086
-            cat ${name}_${arch}.txt || echo "Could not find build log"
+        # Try to locate the build log.
+        # shellcheck disable=SC2086
+        if ls "${name}_${arch}.txt"; then
+            cat "${name}_${arch}.txt"
+        elif ls snapcraft-${name}*${arch}*.txt; then
+            cat snapcraft-${name}*${arch}*.txt
         else
-            # shellcheck disable=SC2086
-            cat snapcraft-${name}*${arch}*.txt || echo "Could not find build log"
+            echo "Could not find build log"
         fi
 
-        if [[ ! -e "${name}_${version}_${arch}.snap" ]]; then
-            echo "Could not find ${name}_${version}_${arch}.snap"
+        # If we can't find a snap file, throw an error.
+        snap_file="${name}_${version}_${arch}.snap"
+        if [[ -z "$snap_file" ]]; then
+            echo "Could not find snap artefact '${snap_file}'"
             exit 1
         fi
 
         popd || exit
 
         # Write the manifest file which is used by later steps
-        echo "snap=${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+        echo "snap=${snap_file}" >> "$GITHUB_OUTPUT"
         if  [[ -n "$project_root" ]]; then
-            echo "snap=${project_root}/${name}_${version}_${arch}.snap" >> "$GITHUB_OUTPUT"
+            echo "snap=${project_root}/${snap_file}" >> "$GITHUB_OUTPUT"
         fi
         echo "name: ${name}" >> "manifest-${{ inputs.architecture }}.yaml"
         echo "architecture: ${arch}" >> "manifest-${{ inputs.architecture }}.yaml"
@@ -184,7 +160,7 @@ runs:
                 component_flags+=("${comp_name}=${name}+${comp_name}_${comp_version}.comp")
             fi
         done
-        snapcraft_out="$(snapcraft upload "$SNAP_FILE" "${component_flags[@]}" --release="${{ inputs.channel }}")"
+        snapcraft_out="$(snapcraft upload "${SNAP_FILE:-}" "${component_flags[@]}" --release="${{ inputs.channel }}")"
         revision="$(echo "$snapcraft_out" | grep -Po "Revision \K[^ ]+")"
         echo "revision=${revision}" >> "$GITHUB_OUTPUT"
         echo "revision: ${revision}" >> "manifest-${{ inputs.architecture }}.yaml"
