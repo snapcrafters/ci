@@ -40,11 +40,6 @@ runs:
         if [[ "$(yq -r '.base' "$yaml_path")" == "core24" ]]; then
           architectures_list="$(yq -r -I=0 -o=json '[.platforms | to_entries | .[] | .key]' "$yaml_path")"
           architectures="$(yq -r -I=0 -o=csv '[.platforms | to_entries | .[] | .key]' "$yaml_path" | tr ',' ' ')"
-        elif [[ "$(yq -r '.base' "$yaml_path")" == "core20" ]]; then
-          # Support long-form definition of architectures until issue is resolved:
-          # https://github.com/canonical/snapcraft/issues/5789
-          architectures_list="$(yq -r -I=0 -o=json '[.architectures[]."build-on".[]]' "$yaml_path")"
-          architectures="$(yq -r -I=0 -o=csv '[.architectures[]."build-on".[]]' "$yaml_path" | tr ',' ' ')"
         else
           # Get the list as a json array. E.g. ["amd64", "arm64"]
           architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' "$yaml_path")"

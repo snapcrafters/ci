@@ -100,9 +100,17 @@ runs:
         project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
       run: |
         pushd "$project_root" && git init || exit
+        snapcraft_args=("--launchpad-accept-public-upload")
+
+        if [[ "$(yq -r '.base' "$yaml_path")" == "core20" ]]; then
+          # https://github.com/canonical/snapcraft/issues/5789
+          yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
+        else
+          snapcraft_args+=("--build-for $arch")
+        fi
 
         # Dispatch the remote build.
-        snapcraft remote-build --launchpad-accept-public-upload --build-for "$arch" || true
+        snapcraft remote-build "${snapcraft_args[@]}" || true
 
         # Try to locate the build log.
         # shellcheck disable=SC2086
