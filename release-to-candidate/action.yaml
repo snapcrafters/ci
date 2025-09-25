@@ -102,7 +102,7 @@ runs:
         pushd "$project_root" && git init || exit
         snapcraft_args=("--launchpad-accept-public-upload")
 
-        if [[ "$(yq -r '.base' "$yaml_path")" == "core20" ]]; then
+        if [[ "$(yq -r '.base' "$yaml_path")" == "core20" || "$(yq -r '.base' "$yaml_path")" == "core18" ]]; then
           # https://github.com/canonical/snapcraft/issues/5789
           yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
         else
