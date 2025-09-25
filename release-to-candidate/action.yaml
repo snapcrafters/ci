@@ -106,7 +106,7 @@ runs:
           # https://github.com/canonical/snapcraft/issues/5789
           yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
         else
-          snapcraft_args+=("--build-for $arch")
+          snapcraft_args+=("--build-for=$arch")
         fi
 
         # Dispatch the remote build.
