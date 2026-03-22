@@ -43,7 +43,7 @@ runs:
 
     - name: Get valid revisions for promotion
       id: valid-revisions
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         result-encoding: string
         script: |
@@ -124,7 +124,7 @@ runs:
         echo "done=$done" >> "$GITHUB_OUTPUT"
 
     - name: Comment on call for testing issue
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           let message = ""
@@ -145,7 +145,7 @@ runs:
 
     - name: Close call for testing issue
       if: ${{ steps.promote.outputs.done }} == "done"
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           if ("${{ steps.promote.outputs.done }}" === "done" && "${{ steps.promote.outputs.revisions }}".length > 0) {
