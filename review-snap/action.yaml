@@ -1,0 +1,51 @@
+name: Review Snap
+description: Review a built Snap package using the same tools as the Snap Store
+author: Snapcrafters
+branding:
+  icon: check-circle
+  color: orange
+
+inputs:
+  is-classic:
+    description: "Set this to 'true' if you are reviewing a classic snap"
+    required: false
+  plugs:
+    description: "The file holding plugs declarations as json to override default snap permissions"
+    required: false
+  slots:
+    description: "The file holding slots declarations as json to override default snap permissions"
+    required: false
+  snap:
+    description: "The snap file to review"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install review-tools
+      shell: bash
+      run: |
+        if ! snap list review-tools &>/dev/null; then
+          sudo snap install review-tools
+        fi
+
+    - name: Review the snap
+      shell: bash
+      env:
+        snap_file: ${{ inputs.snap }}
+        plugs_file: ${{ inputs.plugs }}
+        slots_file: ${{ inputs.slots }}
+        is_classic: ${{ inputs.is-classic }}
+      run: |
+        args=()
+        if [[ -n "${plugs_file}" ]]; then
+          args+=("--plugs" "${plugs_file}")
+        fi
+        if [[ -n "${slots_file}" ]]; then
+          args+=("--slots" "${slots_file}")
+        fi
+        if [[ "${is_classic}" == "true" ]]; then
+          args+=("--allow-classic")
+        fi
+        args+=("${snap_file}")
+        review-tools.snap-review "${args[@]}"
