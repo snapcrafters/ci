@@ -54,7 +54,7 @@ runs:
   using: composite
   steps:
     - name: Checkout the code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Setup ghvmctl
       uses: snapcrafters/ci/setup-ghvmctl@main
@@ -116,7 +116,7 @@ runs:
         ghvmctl exec "cat /home/ubuntu/${snap_name}.${snap_app}.log"
 
     - name: Checkout screenshots repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: ${{ inputs.screenshots-repo }}
         path: ci-screenshots
