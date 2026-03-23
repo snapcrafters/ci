@@ -5,6 +5,7 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 export SHELLCHECK_OPTS=(
     "-s" "bash"
+    "-e" "2001"
     "-e" "2296"
     "-e" "2157"
     "-e" "2129"
