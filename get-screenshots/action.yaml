@@ -145,7 +145,7 @@ runs:
         echo "window=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-window.png" >> "$GITHUB_OUTPUT"
 
     - name: Comment on call for testing issue with screenshots
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           github.rest.issues.createComment({

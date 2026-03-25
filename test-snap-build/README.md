@@ -45,5 +45,5 @@ jobs:
 None
 
 [review-tools]: https://snapcraft.io/review-tools
-[snapcraft-review-tools]: https://github.com/diddlesnaps/snapcraft-review-action/tree/master
+[snapcraft-review-tools]: https://github.com/snapcrafters/ci/tree/main/review-snap
 [dangerous]: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/

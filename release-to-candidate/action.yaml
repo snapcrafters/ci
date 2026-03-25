@@ -140,10 +140,10 @@ runs:
         echo "architecture: ${arch}" >> "manifest-${{ inputs.architecture }}.yaml"
 
     - name: Review the built snap
-      uses: diddlesnaps/snapcraft-review-action@v1
+      uses: snapcrafters/ci/review-snap@main
       with:
         snap: ${{ steps.build.outputs.snap }}
-        isClassic: ${{ steps.snapcraft-yaml.outputs.classic }}
+        is-classic: ${{ steps.snapcraft-yaml.outputs.classic }}
         plugs: ${{ steps.snapcraft-yaml.outputs.plugs-file }}
         slots: ${{ steps.snapcraft-yaml.outputs.slots-file }}
 
@@ -175,7 +175,7 @@ runs:
 
     # Upload the manifest file as an artifact for retrieval during future actions
     - name: Upload revision manifest
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: "manifest-${{ inputs.architecture }}"
         path: "manifest-${{ inputs.architecture }}.yaml"

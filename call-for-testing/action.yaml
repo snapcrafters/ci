@@ -135,8 +135,8 @@ runs:
         awk -v r="${testing_instructions}" '{gsub(/TESTING_INSTRUCTIONS/,r)}1' template-raw.md > template.md
 
     - name: Create call for testing issue
-      uses: JasonEtco/create-an-issue@v2
       id: issue
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
@@ -145,5 +145,27 @@ runs:
         table: ${{ steps.build.outputs.table }}
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         promotion_channel: ${{ inputs.promotion-channel }}
-      with:
-        filename: ./template.md
+      run: |
+        # Extract front-matter fields using yq
+        title=$(yq --front-matter=extract '.title' template.md)
+        labels=$(yq --front-matter=extract '.labels' template.md)
+
+        # Extract the body (everything after the closing --- of front-matter)
+        body=$(sed '1{/^---$/!q;};1,/^---$/d' template.md)
+
+        # Render {{ env.VAR }} placeholders using environment variables
+        render() {
+          sed 's/{{ *env\.\([a-zA-Z_][a-zA-Z0-9_]*\) *}}/${\1}/g' <<< "$1" | envsubst
+        }
+
+        rendered_title=$(render "$title")
+        rendered_body=$(render "$body")
+
+        # Create the issue and extract the issue number from the returned URL
+        url=$(gh issue create \
+          --repo "$GITHUB_REPOSITORY" \
+          --title "$rendered_title" \
+          --label "$labels" \
+          --body "$rendered_body")
+
+        echo "number=$(basename "$url")" >> "$GITHUB_OUTPUT"
