@@ -99,6 +99,9 @@ runs:
         version: ${{ steps.snapcraft-yaml.outputs.version }}
         project_root: ${{ steps.snapcraft-yaml.outputs.project-root }}
       run: |
+        # Set unique LP build branch when git initialisation is done for multi-snap projects
+        git config --global init.defaultBranch "build-${{ inputs.architecture }}-${{ github.run_id }}"
+
         pushd "$project_root" && git init || exit
         snapcraft_args=("--launchpad-accept-public-upload")
 
