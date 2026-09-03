@@ -127,7 +127,7 @@ runs:
 
         # If we can't find a snap file, throw an error.
         snap_file="${name}_${version}_${arch}.snap"
-        if [[ -z "$snap_file" ]]; then
+        if [[ ! -f "$snap_file" ]]; then
             echo "Could not find snap artefact '${snap_file}'"
             exit 1
         fi
