@@ -94,7 +94,7 @@ runs:
         fi
 
         ghvmctl snap-run "${snap_name}.${snap_app}"
-        sleep 60
+        "${{ github.action_path }}/wait-for-window" 60 2
 
     - name: Gather screenshots
       shell: bash
