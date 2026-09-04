@@ -105,8 +105,8 @@ runs:
         pushd "$project_root" && git init || exit
         snapcraft_args=("--launchpad-accept-public-upload")
 
-        if [[ "$(yq -r '.base' "$yaml_path")" == "core20" || "$(yq -r '.base' "$yaml_path")" == "core18" ]]; then
-          # https://github.com/canonical/snapcraft/issues/5789
+        if [[ "$(yq -r '.base' "$yaml_path")" == "core22" || "$(yq -r '.base' "$yaml_path")" == "core20" || "$(yq -r '.base' "$yaml_path")" == "core18" ]]; then
+          # Restrict the manifest because remote-build cannot combine architectures with --build-for.
           yq -i '.architectures |= [{"build-on": env(arch)}]' "$yaml_path"
         else
           snapcraft_args+=("--build-for=$arch")
