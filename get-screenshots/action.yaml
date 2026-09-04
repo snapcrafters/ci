@@ -94,7 +94,7 @@ runs:
         fi
 
         ghvmctl snap-run "${snap_name}.${snap_app}"
-        sleep 60
+        "${{ github.action_path }}/wait-for-window" 60 2
 
     - name: Gather screenshots
       shell: bash
@@ -115,34 +115,20 @@ runs:
 
         ghvmctl exec "cat /home/ubuntu/${snap_name}.${snap_app}.log"
 
-    - name: Checkout screenshots repo
-      uses: actions/checkout@v6
-      with:
-        repository: ${{ inputs.screenshots-repo }}
-        path: ci-screenshots
-        token: ${{ inputs.screenshots-token }}
-
     - name: Upload screenshots to screenshots repo
-      shell: bash
+      uses: actions/github-script@v8
       id: screenshots
       env:
-        snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
-      run: |
-        file_prefix="$(date +%Y%m%d)-${snap_name}-${{ inputs.issue-number }}"
-
-        pushd ci-screenshots || exit 1
-        cp -L "$HOME/ghvmctl-screenshots/screenshot-screen.png" "${file_prefix}-screen.png"
-        cp -L "$HOME/ghvmctl-screenshots/screenshot-window.png" "${file_prefix}-window.png"
-
-        git config --global user.email "${{ inputs.bot-email }}"
-        git config --global user.name "${{ inputs.bot-name }}"
-
-        git add -A .
-        git commit -m "data: screenshots for ${{github.repository_owner}}/${snap_name}#${{ inputs.issue-number }}"
-        git push origin main
-
-        echo "screen=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-screen.png" >> "$GITHUB_OUTPUT"
-        echo "window=https://raw.githubusercontent.com/${{ inputs.screenshots-repo }}/main/${file_prefix}-window.png" >> "$GITHUB_OUTPUT"
+        BOT_EMAIL: ${{ inputs.bot-email }}
+        BOT_NAME: ${{ inputs.bot-name }}
+        ISSUE_NUMBER: ${{ inputs.issue-number }}
+        SCREENSHOTS_REPO: ${{ inputs.screenshots-repo }}
+        SNAP_NAME: ${{ steps.snapcraft-yaml.outputs.snap-name }}
+      with:
+        github-token: ${{ inputs.screenshots-token }}
+        script: |
+          const uploadScreenshots = require("${{ github.action_path }}/upload-screenshots");
+          await uploadScreenshots({ github, core, context });
 
     - name: Comment on call for testing issue with screenshots
       uses: actions/github-script@v8
