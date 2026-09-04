@@ -58,7 +58,7 @@ module.exports = async function uploadScreenshots({ github, core, context, env =
   for (const screenshot of screenshots) {
     core.setOutput(
       screenshot.suffix,
-      `https://raw.githubusercontent.com/${env.SCREENSHOTS_REPO}/main/${prefix}-${screenshot.suffix}.png`,
+      `https://raw.githubusercontent.com/${env.SCREENSHOTS_REPO}/${commit.data.sha}/${prefix}-${screenshot.suffix}.png`,
     );
   }
 };
