@@ -94,7 +94,10 @@ runs:
         fi
 
         ghvmctl snap-run "${snap_name}.${snap_app}"
-        "${{ github.action_path }}/wait-for-window" 60 2
+
+        # gnome-screenshot -w succeeds against the desktop before the application
+        # has mapped a window, so it cannot be used as a readiness signal.
+        sleep 60
 
     - name: Gather screenshots
       shell: bash
