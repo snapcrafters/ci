@@ -16,7 +16,16 @@ runs:
         sudo udevadm trigger --name-match=kvm
 
     - name: Setup LXD
-      uses: canonical/setup-lxd@v0.1.1
+      uses: canonical/setup-lxd@v1
+      with:
+        channel: 6/stable
+        group: runner
+
+    - name: Restart LXD with the configured socket group
+      shell: bash
+      run: |
+        sudo snap restart lxd
+        sudo lxd waitready
 
     - name: Setup ghvmctl
       shell: bash
