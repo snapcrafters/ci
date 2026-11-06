@@ -8,18 +8,6 @@ Only newly created `issue_comment` events are accepted. The commenter must have 
 access to the repository; accepted commands receive an eyes reaction. Commands must start at the
 beginning of a line, for example `/promote 123,456 latest/stable done`.
 
-## Tests
-
-With Node.js and [uv](https://docs.astral.sh/uv/) installed, run the regression tests from the
-repository root:
-
-```bash
-uv run --with pyyaml python -B -m unittest discover -s promote-to-stable -v
-```
-
-These execute the action's JavaScript with stubbed GitHub APIs and its Bash script with a stubbed
-`snapcraft` command. They do not promote any real revisions.
-
 ## Usage
 
 ```yaml
