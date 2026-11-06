@@ -32,14 +32,36 @@ runs:
 
     - name: Parse slash command
       id: command
-      uses: xt0rted/slash-command-action@v2
+      uses: actions/github-script@v8
       with:
-        repo-token: ${{ inputs.github-token }}
-        command: promote
-        reaction: "true"
-        reaction-type: "eyes"
-        allow-edits: "false"
-        permission-level: write
+        github-token: ${{ inputs.github-token }}
+        script: |
+          if (context.eventName !== 'issue_comment' || context.payload.action !== 'created') {
+            core.setFailed('Only newly created issue comments can request promotion');
+            return;
+          }
+          const comment = context.payload.comment;
+          const command = (comment?.body || '').match(/^\/([\w]+)\b *(.*)?$/m);
+          if (!command || command[1] !== 'promote') {
+            core.setFailed('Comment did not contain a valid /promote command');
+            return;
+          }
+          const access = await github.rest.repos.getCollaboratorPermissionLevel({
+            ...context.repo,
+            username: context.actor,
+          });
+          // Keep the existing write-or-admin permission requirement.
+          if (!['write', 'admin'].includes(access.data.permission)) {
+            core.setFailed('User does not have write access to this repository');
+            return;
+          }
+          await github.rest.reactions.createForIssueComment({
+            ...context.repo,
+            comment_id: comment.id,
+            content: 'eyes',
+          });
+          core.setOutput('command-name', 'promote');
+          core.setOutput('command-arguments', command[2] || '');
 
     - name: Get valid revisions for promotion
       id: valid-revisions
@@ -73,12 +95,14 @@ runs:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
         snap_name: ${{ steps.snapcraft-yaml.outputs.snap-name }}
         valid_revisions: ${{ steps.valid-revisions.outputs.result }}
+        command_name: ${{ steps.command.outputs.command-name }}
+        command_arguments: ${{ steps.command.outputs.command-arguments }}
       shell: bash
       run: |
-        echo "The command was '${{ steps.command.outputs.command-name }}' with arguments '${{ steps.command.outputs.command-arguments }}'"
+        echo "The command was '$command_name' with arguments '$command_arguments'"
 
-        # shellcheck disable=SC1083,SC2206
-        arguments=(${{ steps.command.outputs.command-arguments }})
+        # Parse data from the comment without interpolating it into shell code.
+        read -r -a arguments <<< "$command_arguments"
         revision=${arguments[0]}
         requested_channel=${arguments[1]}
         done=${arguments[2]}
