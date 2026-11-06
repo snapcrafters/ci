@@ -41,17 +41,9 @@ runs:
           architectures_list="$(yq -r -I=0 -o=json '[.platforms | to_entries | .[] | .key]' "$yaml_path")"
           architectures="$(yq -r -I=0 -o=csv '[.platforms | to_entries | .[] | .key]' "$yaml_path" | tr ',' ' ')"
         else
-          # Get the list as a json array. E.g. ["amd64", "arm64"]
-          architectures_list="$(yq -r -I=0 -o=json '[.architectures[]]' "$yaml_path")"
-          
-          # Get the list as a space-separated string. E.g. "amd64" "arm64"
-          architectures="$(yq -r -I=0 -o=csv '[.architectures[]]' "$yaml_path" | tr ',' ' ')"
-          
-          # Handle the case where architectures is a list of objects
-          if echo "$architectures" | grep -q "build-on"; then
-            architectures_list="$(yq -r -I=0 -o=json '[.architectures[]."build-on"]' "$yaml_path")"
-            architectures="$(yq -r -I=0 -o=csv '[.architectures[]."build-on"]' "$yaml_path" | tr ',' ' ')"
-          fi
+          # Normalize scalar entries and scalar/list build-on values before encoding.
+          architectures_list="$(yq -r -I=0 -o=json '[.architectures[] | select(. != null) | (.build-on // .)] | flatten | unique' "$yaml_path")"
+          architectures="$(echo "$architectures_list" | yq -r -p=json -o=csv '.' | tr ',' ' ')"
         fi
 
         echo "architectures_list=$architectures_list" >> "$GITHUB_OUTPUT"
