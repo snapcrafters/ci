@@ -36,8 +36,8 @@ runs:
       env:
         yaml_path: ${{ steps.snapcraft-yaml.outputs.yaml-path }}
       run: |
-        # core24 uses a different syntax for specifying platforms.
-        if [[ "$(yq -r '.base' "$yaml_path")" == "core24" ]]; then
+        # core24 and core26 use platforms instead of architectures.
+        if [[ "$(yq -r '.base' "$yaml_path")" =~ ^core(24|26)$ ]]; then
           architectures_list="$(yq -r -I=0 -o=json '[.platforms | to_entries | .[] | .key]' "$yaml_path")"
           architectures="$(yq -r -I=0 -o=csv '[.platforms | to_entries | .[] | .key]' "$yaml_path" | tr ',' ' ')"
         else
